@@ -110,6 +110,12 @@ jobs:
     name: npm (CLI tadb)
     needs: build
     runs-on: ubuntu-latest
+    # `npm publish --provenance` signe le paquet via l'OIDC de GitHub : sans
+    # `id-token: write`, la publication echoue sur un refus de jeton. Ces
+    # permissions locales remplacent celles declarees a la racine du workflow.
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
