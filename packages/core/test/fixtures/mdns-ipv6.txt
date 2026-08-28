@@ -1,0 +1,2 @@
+List of discovered mdns services
+adb-RZGL111VD2M-abc123	_adb-tls-connect._tcp	[fe80::1c2d:3e4f:5a6b:7c8d%wlan0]:37123

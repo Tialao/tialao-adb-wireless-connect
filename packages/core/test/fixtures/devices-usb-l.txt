@@ -1,0 +1,3 @@
+List of devices attached
+RZGL111VD2M            device product:a17xx model:SM_A175F device:a17 transport_id:1
+

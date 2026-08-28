@@ -1,0 +1,8 @@
+List of devices attached
+RZGL111VD2M            device product:a17xx model:SM_A175F device:a17 transport_id:1
+192.168.95.90:37123    device product:a17xx model:SM_A175F device:a17 transport_id:4
+adb-RZGL111VD2M-abc123._adb-tls-connect._tcp.	device product:a17xx model:SM_A175F device:a17 transport_id:7
+emulator-5554          offline
+0123456789ABCDEF       unauthorized
+FA69ABCDEFGH           no permissions (user in plugdev group; are your udev rules wrong?); see [http://developer.android.com/tools/device.html]
+

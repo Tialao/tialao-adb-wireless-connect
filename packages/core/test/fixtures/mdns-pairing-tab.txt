@@ -1,0 +1,2 @@
+List of discovered mdns services
+studio-Ab3xK9	_adb-tls-pairing._tcp	192.168.95.90:41234

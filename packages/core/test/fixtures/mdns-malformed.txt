@@ -1,0 +1,5 @@
+List of discovered mdns services
+studio-Ab3xK9	_adb-tls-pairing._tcp	192.168.95.90
+	_adb-tls-connect._tcp	192.168.95.90:37123
+garbage line without any structure
+adb-RZGL111VD2M-abc123	_adb-tls-connect._tcp	192.168.95.90:37123
