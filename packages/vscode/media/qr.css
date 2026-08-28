@@ -1,25 +1,24 @@
 /*
- * Feuille de style du panneau d'association.
+ * Panneau d'association.
  *
- * Tout est construit sur les variables `--vscode-*` : le panneau est donc correct en
- * thème clair comme en thème sombre sans une seule règle conditionnelle.
+ * Tout est construit sur les variables `--vscode-*` : correct en thème clair comme en
+ * sombre, sans une seule règle conditionnelle.
  *
- * SEULE EXCEPTION, et elle est délibérée : le cadre du QR reste clair en toutes
- * circonstances. Un QR qui suivrait le thème sombre, ou un QR inversé, n'est pas
- * scanné de manière fiable par les appareils Android.
+ * SEULE EXCEPTION, délibérée : le cadre du QR reste clair en toutes circonstances. Un QR
+ * qui suivrait un thème sombre, ou un QR inversé, n'est pas scanné de manière fiable.
  */
 
 :root {
-  --tadb-radius: 14px;
-  --tadb-radius-sm: 8px;
-  --tadb-gap: 20px;
-  --tadb-accent: var(--vscode-textLink-foreground, #3794ff);
+  --tadb-radius: 12px;
+  --tadb-radius-sm: 7px;
   --tadb-border: var(--vscode-panel-border, rgba(128, 128, 128, 0.35));
   --tadb-muted: var(--vscode-descriptionForeground, #8b949e);
+  --tadb-accent: var(--vscode-textLink-foreground, #3794ff);
   --tadb-ok: var(--vscode-testing-iconPassed, #3fb950);
   --tadb-warn: var(--vscode-editorWarning-foreground, #d29922);
   --tadb-err: var(--vscode-editorError-foreground, #f85149);
-  --tadb-progress: 0;
+  --tadb-surface: var(--vscode-editorWidget-background, var(--vscode-editor-background));
+  --tadb-progress: 0.06;
 }
 
 * {
@@ -28,7 +27,7 @@
 
 body {
   margin: 0;
-  padding: clamp(16px, 4vw, 40px) clamp(12px, 4vw, 40px);
+  padding: clamp(14px, 3vw, 28px);
   font-family: var(--vscode-font-family);
   font-size: var(--vscode-font-size, 13px);
   color: var(--vscode-foreground);
@@ -39,23 +38,17 @@ body {
 
 .shell {
   width: 100%;
-  max-width: 560px;
+  max-width: 540px;
   display: flex;
   flex-direction: column;
-  gap: var(--tadb-gap);
+  gap: 16px;
 }
 
 /* ---------------------------------------------------------------- En-tête */
 
-.header {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
 .header h1 {
-  margin: 0;
-  font-size: clamp(1.05rem, 1rem + 0.6vw, 1.35rem);
+  margin: 0 0 4px;
+  font-size: clamp(1.02rem, 0.98rem + 0.5vw, 1.28rem);
   font-weight: 600;
   letter-spacing: -0.01em;
 }
@@ -63,7 +56,54 @@ body {
 .header p {
   margin: 0;
   color: var(--tadb-muted);
-  line-height: 1.5;
+  line-height: 1.55;
+}
+
+/* ---------------------------------------------------------------- Barre d'actions */
+
+.actions-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 7px;
+  border: 1px solid var(--tadb-border);
+  border-radius: var(--tadb-radius-sm);
+  background: var(--tadb-surface);
+}
+
+.actions-bar button {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 11px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--vscode-foreground);
+  font-family: inherit;
+  font-size: 0.9em;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.actions-bar button:hover {
+  background: var(--vscode-toolbar-hoverBackground, rgba(128, 128, 128, 0.18));
+}
+
+.actions-bar button:focus-visible {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: 1px;
+}
+
+.actions-bar .glyph {
+  font-size: 1.05em;
+  line-height: 1;
+  opacity: 0.85;
 }
 
 /* ---------------------------------------------------------------- Carte QR */
@@ -72,29 +112,27 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
-  padding: clamp(16px, 3vw, 24px);
+  gap: 13px;
+  padding: clamp(14px, 2.5vw, 22px);
   border: 1px solid var(--tadb-border);
   border-radius: var(--tadb-radius);
-  background: var(--vscode-editorWidget-background, var(--vscode-editor-background));
+  background: var(--tadb-surface);
 }
 
-/*
- * Le cadre blanc du QR. Sa couleur ne dépend PAS du thème : c'est la condition
- * pour que le code reste scannable dans un éditeur en thème sombre.
- */
+/* Cadre blanc du QR : sa couleur ne dépend PAS du thème, c'est la condition pour
+   que le code reste scannable dans un éditeur en thème sombre. */
 .qr-frame {
-  width: clamp(180px, 58vw, 280px);
+  width: clamp(170px, 52vw, 250px);
   aspect-ratio: 1;
-  padding: 10px;
+  padding: 9px;
   border-radius: var(--tadb-radius-sm);
   background: #ffffff;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.28), 0 8px 24px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.28), 0 8px 22px rgba(0, 0, 0, 0.12);
   display: grid;
   place-items: center;
   opacity: 0;
   transform: scale(0.97);
-  animation: tadb-appear 320ms ease-out forwards;
+  animation: tadb-appear 300ms ease-out forwards;
 }
 
 .qr-frame svg {
@@ -104,9 +142,8 @@ body {
 }
 
 .qr-frame.is-spent {
-  /* Une fois le QR consommé, on le grise : il n'est plus valable. */
   filter: grayscale(1);
-  opacity: 0.4;
+  opacity: 0.35;
   transition: opacity 240ms ease, filter 240ms ease;
 }
 
@@ -121,8 +158,8 @@ body {
   margin: 0;
   text-align: center;
   color: var(--tadb-muted);
-  line-height: 1.6;
-  max-width: 42ch;
+  line-height: 1.55;
+  max-width: 40ch;
 }
 
 .qr-hint strong {
@@ -133,47 +170,70 @@ body {
 /* ---------------------------------------------------------------- Identifiants */
 
 .creds {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 8px 12px;
   width: 100%;
-  padding-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 11px;
   border-top: 1px solid var(--tadb-border);
 }
 
-.creds dt {
-  color: var(--tadb-muted);
-  white-space: nowrap;
+.cred {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 26px;
 }
 
-.creds dd {
-  margin: 0;
+.cred .name {
+  color: var(--tadb-muted);
+  white-space: nowrap;
+  flex: 0 0 96px;
+  font-size: 0.92em;
+}
+
+.cred .value {
+  flex: 1 1 auto;
+  min-width: 0;
   font-family: var(--vscode-editor-font-family, monospace);
-  font-size: 0.95em;
+  font-size: 0.94em;
   overflow-wrap: anywhere;
 }
 
-.copy {
+/* Le mot de passe masqué garde la même largeur, pour éviter que la ligne saute. */
+.cred .value.is-hidden {
+  letter-spacing: 0.16em;
+  color: var(--tadb-muted);
+}
+
+.icon-button {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
   border: 1px solid transparent;
   border-radius: 5px;
   background: transparent;
   color: var(--tadb-muted);
+  font-size: 0.95em;
   cursor: pointer;
-  padding: 3px 8px;
-  font-family: inherit;
-  font-size: 0.85em;
   transition: background 120ms ease, color 120ms ease;
 }
 
-.copy:hover {
+.icon-button:hover {
   background: var(--vscode-toolbar-hoverBackground, rgba(128, 128, 128, 0.18));
   color: var(--vscode-foreground);
 }
 
-.copy:focus-visible {
+.icon-button:focus-visible {
   outline: 1px solid var(--vscode-focusBorder);
   outline-offset: 1px;
+}
+
+.icon-button.is-done {
+  color: var(--tadb-ok);
 }
 
 /* ---------------------------------------------------------------- Étapes */
@@ -190,8 +250,8 @@ body {
 .step {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  font-size: 0.86em;
+  gap: 7px;
+  font-size: 0.85em;
   color: var(--tadb-muted);
   min-width: 0;
 }
@@ -245,8 +305,6 @@ body {
   }
 }
 
-/* ---------------------------------------------------------------- Statut */
-
 .status {
   display: flex;
   align-items: baseline;
@@ -266,46 +324,274 @@ body {
   font-size: 0.9em;
 }
 
-/* ---------------------------------------------------------------- Messages */
+/* ---------------------------------------------------------------- Résultat */
 
-.notice {
+/*
+ * Le résultat est une ligne sobre — pastille, nom, adresse — et non un bandeau de
+ * couleur pleine largeur, qui alourdirait la page pour une seule information.
+ */
+.result {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 11px 13px;
+  border: 1px solid var(--tadb-border);
+  border-radius: var(--tadb-radius-sm);
+  background: var(--tadb-surface);
+}
+
+.result .dot {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--tadb-muted);
+}
+
+.result.is-success .dot {
+  background: var(--tadb-ok);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--tadb-ok) 22%, transparent);
+}
+
+.result.is-error .dot {
+  background: var(--tadb-err);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--tadb-err) 22%, transparent);
+}
+
+.result.is-warn .dot {
+  background: var(--tadb-warn);
+}
+
+.result .body {
+  flex: 1 1 auto;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 12px 14px;
-  border-radius: var(--tadb-radius-sm);
-  border-left: 3px solid var(--tadb-warn);
-  background: var(--vscode-inputValidation-warningBackground, rgba(210, 153, 34, 0.12));
+  gap: 2px;
+}
+
+.result .title {
+  font-weight: 600;
+}
+
+.result .detail {
+  color: var(--tadb-muted);
+  font-size: 0.92em;
+  line-height: 1.45;
+}
+
+.result .detail code {
+  font-family: var(--vscode-editor-font-family, monospace);
+  font-size: 0.95em;
+}
+
+/* Bouton d'action de la carte, poussé à droite par le corps en flex:1. */
+.result-action {
+  flex: 0 0 auto;
+  height: 27px;
+  padding: 0 12px;
+  border: 1px solid var(--tadb-border);
+  border-radius: 5px;
+  background: transparent;
+  color: var(--vscode-foreground);
+  font-family: inherit;
+  font-size: 0.88em;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.result-action:hover {
+  background: var(--vscode-toolbar-hoverBackground, rgba(128, 128, 128, 0.18));
+  border-color: var(--tadb-muted);
+}
+
+.result-action:focus-visible {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: 1px;
+}
+
+/* ---------------------------------------------------------------- Fenêtres modales */
+
+/*
+ * Les formulaires s'affichent au CENTRE de la vue, par-dessus le contenu, et non en
+ * bas de page : posés en fin de flux, ils apparaissaient hors de l'écran et
+ * obligeaient à défiler pour les voir.
+ */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.55);
+  animation: tadb-fade 140ms ease-out;
+}
+
+@keyframes tadb-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+.modal {
+  width: min(340px, 100%);
+  max-height: 100%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 17px;
+  border: 1px solid var(--tadb-border);
+  border-radius: var(--tadb-radius);
+  background: var(--tadb-surface);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+  animation: tadb-rise 160ms ease-out;
+}
+
+@keyframes tadb-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.modal h2 {
+  margin: 0;
+  font-size: 0.98em;
+  font-weight: 600;
+}
+
+.modal p {
+  margin: 0;
+  color: var(--tadb-muted);
+  font-size: 0.9em;
   line-height: 1.5;
 }
 
-.notice.is-error {
-  border-left-color: var(--tadb-err);
-  background: var(--vscode-inputValidation-errorBackground, rgba(248, 81, 73, 0.12));
-}
-
-.notice.is-success {
-  border-left-color: var(--tadb-ok);
-  background: var(--vscode-inputValidation-infoBackground, rgba(63, 185, 80, 0.12));
-}
-
-.notice .hint {
-  color: var(--tadb-muted);
-  font-size: 0.92em;
-}
-
-/* ---------------------------------------------------------------- Actions */
-
-.actions {
+.field {
   display: flex;
-  gap: 10px;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.field label {
+  font-size: 0.88em;
+  color: var(--tadb-muted);
+}
+
+.field-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.field-row input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.field input {
+  width: 100%;
+  height: 30px;
+  padding: 0 9px;
+  border-radius: 5px;
+  border: 1px solid var(--vscode-input-border, var(--tadb-border));
+  background: var(--vscode-input-background);
+  color: var(--vscode-input-foreground);
+  font-family: var(--vscode-editor-font-family, monospace);
+  font-size: 0.94em;
+}
+
+.field input:focus {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: -1px;
+}
+
+.field .error {
+  color: var(--tadb-err);
+  font-size: 0.85em;
+  min-height: 1em;
+}
+
+/* ---------------------------------------------------------------- Liste d'appareils */
+
+.device-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 46vh;
+  overflow-y: auto;
+}
+
+.device-list li {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 11px;
+  border: 1px solid var(--tadb-border);
+  border-radius: var(--tadb-radius-sm);
+}
+
+.device-list .dot {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--tadb-muted);
+}
+
+.device-list li.is-online .dot {
+  background: var(--tadb-ok);
+}
+
+.device-list li.is-warn .dot {
+  background: var(--tadb-warn);
+}
+
+.device-list .info {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.device-list .name {
+  font-weight: 600;
+}
+
+.device-list .meta {
+  color: var(--tadb-muted);
+  font-size: 0.86em;
+  font-family: var(--vscode-editor-font-family, monospace);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.device-list .empty {
+  justify-content: center;
+  color: var(--tadb-muted);
+  border-style: dashed;
+}
+
+/* ---------------------------------------------------------------- Boutons */
+
+.buttons {
+  display: flex;
+  gap: 9px;
   flex-wrap: wrap;
 }
 
 button.action {
   flex: 1 1 auto;
-  min-width: 140px;
-  padding: 7px 14px;
+  min-width: 120px;
+  height: 30px;
+  padding: 0 14px;
   border-radius: 5px;
   border: 1px solid transparent;
   font-family: inherit;
@@ -335,34 +621,68 @@ button.action:focus-visible {
   outline-offset: 2px;
 }
 
+/* Action destructrice : teintée d'erreur, sans crier. */
+button.action.danger {
+  background: transparent;
+  color: var(--tadb-err);
+  border-color: color-mix(in srgb, var(--tadb-err) 45%, transparent);
+}
+
+button.action.danger:hover {
+  background: color-mix(in srgb, var(--tadb-err) 14%, transparent);
+  border-color: var(--tadb-err);
+}
+
+/* Bouton de déconnexion posé sur chaque ligne d'appareil. */
+.device-list .row-action {
+  flex: 0 0 auto;
+  height: 25px;
+  padding: 0 10px;
+  border: 1px solid var(--tadb-border);
+  border-radius: 5px;
+  background: transparent;
+  color: var(--tadb-muted);
+  font-family: inherit;
+  font-size: 0.85em;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.device-list .row-action:hover {
+  background: color-mix(in srgb, var(--tadb-err) 14%, transparent);
+  border-color: var(--tadb-err);
+  color: var(--tadb-err);
+}
+
+.device-list .row-action:focus-visible {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: 1px;
+}
+
 [hidden] {
   display: none !important;
 }
 
 /* ----------------------------------------------- Panneau étroit (colonne latérale) */
 
-/*
- * Un webview VS Code est très souvent réduit à une colonne de ~300 px. Le QR doit y
- * rester grand et scannable, et les étapes passent en deux lignes plutôt que d'être
- * écrasées en quatre colonnes illisibles.
- */
 @media (max-width: 420px) {
   .steps {
     grid-template-columns: repeat(2, 1fr);
     gap: 10px 8px;
   }
 
-  .creds {
-    grid-template-columns: 1fr auto;
+  .cred .name {
+    flex-basis: 74px;
+    font-size: 0.86em;
   }
 
-  .creds dt {
-    grid-column: 1 / -1;
-    font-size: 0.85em;
+  .actions-bar button .label {
+    display: none;
   }
 
-  .qr-frame {
-    width: min(100%, 260px);
+  .actions-bar button {
+    flex: 0 0 auto;
+    padding: 0 9px;
   }
 
   button.action {

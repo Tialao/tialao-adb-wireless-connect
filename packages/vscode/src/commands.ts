@@ -12,6 +12,7 @@ import * as config from './config.ts';
 import type { AdbLocator } from './adbLocator.ts';
 import type { Logger } from './logger.ts';
 import type { StatusBar } from './statusBar.ts';
+import { MirrorPanel } from './webview/mirrorPanel.ts';
 import { QrPanel, promptForAddress } from './webview/qrPanel.ts';
 
 export interface Context {
@@ -268,11 +269,30 @@ export async function disconnect(ctx: Context): Promise<void> {
   items.push({ label: '', kind: vscode.QuickPickItemKind.Separator });
   items.push({ label: '$(close-all) Tout déconnecter' });
 
-  const pick = await vscode.window.showQuickPick(items, {
-    title: 'TIALAO ADB — déconnecter',
-    placeHolder: 'Choisissez un appareil à déconnecter',
-  });
+  // Avec un seul appareil, le choix n'apporte rien : on va droit à la confirmation.
+  const pick =
+    devices.length === 1
+      ? items[0]
+      : await vscode.window.showQuickPick(items, {
+          title: 'TIALAO ADB — déconnecter',
+          placeHolder: 'Choisissez un appareil à déconnecter',
+        });
   if (!pick) return;
+
+  const target = pick.address ? formatHostPort(pick.address) : 'tous les appareils Wi-Fi';
+  const confirm = 'Déconnecter';
+  const answer = await vscode.window.showWarningMessage(
+    pick.address
+      ? `Déconnecter ${pick.description ?? target} ?`
+      : 'Déconnecter tous les appareils Wi-Fi ?',
+    {
+      modal: true,
+      detail:
+        "L'appareil reste associé : il pourra être reconnecté sans refaire l'association. Les sessions de débogage en cours seront interrompues.",
+    },
+    confirm,
+  );
+  if (answer !== confirm) return;
 
   await adb.disconnect(pick.address);
   vscode.window.showInformationMessage(
@@ -408,6 +428,11 @@ export async function menu(ctx: Context): Promise<void> {
     },
     { label: '', kind: vscode.QuickPickItemKind.Separator },
     {
+      label: "$(screen-full) Afficher l'écran de l'appareil",
+      detail: "Miroir interactif dans un onglet de l'éditeur",
+      command: 'tialaoAdb.mirror',
+    },
+    {
       label: '$(list-unordered) Afficher les appareils',
       detail: 'Sortie de adb devices -l dans le journal',
       command: 'tialaoAdb.showDevices',
@@ -462,4 +487,67 @@ export async function autoConnect(ctx: Context): Promise<void> {
   } catch (error) {
     ctx.logger.warn(`Reconnexion automatique impossible : ${String(error)}`);
   }
+}
+
+/** Ouvre le miroir d'écran de l'appareil choisi. */
+export async function mirror(ctx: Context): Promise<void> {
+  const adb = await ctx.locator.ensure();
+  if (!adb) return;
+
+  const devices = dedupeDevices(await adb.devices()).filter((d) => d.state === 'device');
+  if (devices.length === 0) {
+    await reportError(
+      ctx.logger,
+      'Aucun appareil disponible.',
+      "Associez un appareil, ou vérifiez son état avec « Show connected devices ».",
+    );
+    return;
+  }
+
+  const device =
+    devices.length === 1
+      ? devices[0]
+      : (
+          await vscode.window.showQuickPick(
+            devices.map((d) => ({
+              label: `$(device-mobile) ${deviceLabel(d)}`,
+              description: d.serial,
+              detail: transportLabel(d),
+              device: d,
+            })),
+            { title: 'TIALAO ADB — quel appareil afficher ?' },
+          )
+        )?.device;
+
+  if (!device) return;
+  await MirrorPanel.show(ctx.extensionUri, adb, device, ctx.logger);
+}
+
+/**
+ * Ouvre un terminal montrant l'état d'adb et les processus en cours.
+ *
+ * Le terminal reste ouvert et rendu à l'utilisateur : c'est le moyen le plus direct
+ * de poursuivre avec ses propres commandes adb après avoir vu l'état.
+ */
+export async function openTerminal(ctx: Context): Promise<void> {
+  const adb = await ctx.locator.ensure();
+  if (!adb) return;
+
+  const adbPath = (await adb.location()).path;
+  const terminal = vscode.window.createTerminal({
+    name: 'TIALAO ADB',
+    iconPath: new vscode.ThemeIcon('device-mobile'),
+  });
+  terminal.show();
+
+  // Le chemin d'adb n'est PAS interpolé dans la ligne envoyée : un chemin contenant
+  // `&`, `;` ou `$(…)` y deviendrait une commande exécutée par le shell. Il est
+  // seulement affiché, et l'utilisateur lance ce qu'il veut ensuite.
+  ctx.logger.info(`Terminal de diagnostic — adb : ${adbPath}`);
+  terminal.sendText(
+    process.platform === 'win32'
+      ? 'tasklist /FI "IMAGENAME eq adb.exe" /FI "STATUS eq running"'
+      : 'ps -eo pid,comm,args | grep -E "adb|scrcpy" | grep -v grep',
+  );
+
 }

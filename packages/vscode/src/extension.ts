@@ -51,6 +51,8 @@ export function activate(context: vscode.ExtensionContext): void {
   register('tialaoAdb.tcpip', () => commands.tcpip(ctx));
   register('tialaoAdb.restartServer', () => commands.restartServer(ctx));
   register('tialaoAdb.showDevices', () => commands.showDevices(ctx));
+  register('tialaoAdb.mirror', () => commands.mirror(ctx));
+  register('tialaoAdb.openTerminal', () => commands.openTerminal(ctx));
   register('tialaoAdb.menu', () => commands.menu(ctx));
 
   context.subscriptions.push(logger, statusBar);
