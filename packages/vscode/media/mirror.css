@@ -1,0 +1,290 @@
+/*
+ * Miroir d'écran.
+ *
+ * Le cadre (« viewport ») est dimensionné en JavaScript pour épouser exactement le ratio
+ * de l'appareil. C'est ce qui permet deux choses : l'écran tient toujours en entier sans
+ * défilement, et les poignées de redimensionnement se posent pile sur ses bords, comme
+ * dans le panneau « Running Devices » d'Android Studio.
+ */
+
+:root {
+  --tadb-border: var(--vscode-panel-border, rgba(128, 128, 128, 0.35));
+  --tadb-muted: var(--vscode-descriptionForeground, #8b949e);
+  --tadb-toolbar: var(--vscode-editorWidget-background, var(--vscode-editor-background));
+  --tadb-accent: var(--vscode-focusBorder, #3794ff);
+  /* Réécrites par le script au fil du redimensionnement. */
+  --tadb-view-width: 0px;
+  --tadb-view-height: 0px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size, 13px);
+  color: var(--vscode-foreground);
+  background: var(--vscode-editor-background);
+  overflow: hidden;
+}
+
+/* ------------------------------------------------------------------ Barre d'outils */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--tadb-border);
+  background: var(--tadb-toolbar);
+  flex-wrap: wrap;
+  flex: 0 0 auto;
+}
+
+.toolbar .spacer {
+  flex: 1 1 auto;
+}
+
+.toolbar button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 30px;
+  height: 27px;
+  padding: 0 9px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--vscode-foreground);
+  font-family: inherit;
+  font-size: 0.92em;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.toolbar button:hover {
+  background: var(--vscode-toolbar-hoverBackground, rgba(128, 128, 128, 0.18));
+}
+
+.toolbar button:focus-visible {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: 1px;
+}
+
+.toolbar .divider {
+  width: 1px;
+  height: 18px;
+  margin: 0 4px;
+  background: var(--tadb-border);
+}
+
+.zoom-label {
+  color: var(--tadb-muted);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.88em;
+  min-width: 42px;
+  text-align: center;
+}
+
+/* ------------------------------------------------------------------ Scène */
+
+.stage {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  /* L'écran doit toujours tenir en entier : aucun défilement ici. */
+  overflow: hidden;
+}
+
+/*
+ * Cadre de l'écran. Sa taille est fixée par le script, jamais par le contenu :
+ * c'est ce qui garantit que l'image ne déborde pas et que les poignées collent
+ * aux bords réels de l'écran affiché.
+ */
+.viewport {
+  position: relative;
+  /* Valeurs de repli : sans elles, une variable manquante rendrait la déclaration
+     invalide et le cadre s'effondrerait à une taille nulle. */
+  width: var(--tadb-view-width, 300px);
+  height: var(--tadb-view-height, 650px);
+  border-radius: 10px;
+  background: #000;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35), 0 14px 36px rgba(0, 0, 0, 0.2);
+}
+
+.viewport canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  outline: none;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.viewport canvas:focus-visible {
+  outline: 2px solid var(--vscode-focusBorder);
+  outline-offset: 3px;
+}
+
+/* ------------------------------------------------------------------ Poignées */
+
+/*
+ * Huit poignées, comme une fenêtre redimensionnable. Les coins conservent le ratio de
+ * l'appareil ; les bords ajustent une seule dimension, l'autre suivant pour ne jamais
+ * déformer l'image.
+ */
+.handle {
+  position: absolute;
+  background: transparent;
+  z-index: 2;
+}
+
+.handle::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: var(--tadb-accent);
+  transition: opacity 120ms ease;
+}
+
+.viewport:hover .handle::after,
+.viewport.is-resizing .handle::after {
+  opacity: 0.55;
+}
+
+.handle-n,
+.handle-s {
+  left: 12px;
+  right: 12px;
+  height: 8px;
+  cursor: ns-resize;
+}
+
+.handle-n {
+  top: -4px;
+}
+
+.handle-s {
+  bottom: -4px;
+}
+
+.handle-w,
+.handle-e {
+  top: 12px;
+  bottom: 12px;
+  width: 8px;
+  cursor: ew-resize;
+}
+
+.handle-w {
+  left: -4px;
+}
+
+.handle-e {
+  right: -4px;
+}
+
+.handle-nw,
+.handle-ne,
+.handle-sw,
+.handle-se {
+  width: 14px;
+  height: 14px;
+}
+
+.handle-nw {
+  top: -5px;
+  left: -5px;
+  cursor: nwse-resize;
+}
+
+.handle-ne {
+  top: -5px;
+  right: -5px;
+  cursor: nesw-resize;
+}
+
+.handle-sw {
+  bottom: -5px;
+  left: -5px;
+  cursor: nesw-resize;
+}
+
+.handle-se {
+  bottom: -5px;
+  right: -5px;
+  cursor: nwse-resize;
+}
+
+.handle-nw::after,
+.handle-ne::after,
+.handle-sw::after,
+.handle-se::after {
+  border-radius: 3px;
+}
+
+/* Pendant un redimensionnement, le curseur ne doit pas changer au survol du canvas. */
+.viewport.is-resizing canvas {
+  pointer-events: none;
+}
+
+.placeholder {
+  color: var(--tadb-muted);
+  text-align: center;
+  max-width: 46ch;
+  line-height: 1.6;
+}
+
+/* ------------------------------------------------------------------ Pied */
+
+.footer {
+  flex: 0 0 auto;
+  padding: 5px 10px;
+  border-top: 1px solid var(--tadb-border);
+  background: var(--tadb-toolbar);
+  color: var(--tadb-muted);
+  font-size: 0.85em;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.footer span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+@media (max-width: 520px) {
+  .toolbar .label {
+    display: none;
+  }
+
+  .stage {
+    padding: 10px;
+  }
+
+  .footer {
+    flex-direction: column;
+    gap: 2px;
+  }
+}
