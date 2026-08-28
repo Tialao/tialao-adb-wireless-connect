@@ -1,5 +1,6 @@
 import test, { describe } from 'node:test';
 import assert from 'node:assert/strict';
+import { redactSecrets } from '../src/adb.ts';
 import {
   formatHostPort,
   parseAdbVersion,
@@ -203,5 +204,38 @@ describe('parseAdbVersion', () => {
 
   test('sortie inattendue : version "inconnue" plutot qu une exception', () => {
     assert.equal(parseAdbVersion('bonjour').version, 'inconnue');
+  });
+});
+
+describe('redactSecrets', () => {
+  test('le mot de passe de `adb pair` est masque', () => {
+    const args = ['pair', '192.168.1.42:41234', 'MonMotDePasseSecret'];
+    const out = redactSecrets(args).join(' ');
+    assert.doesNotMatch(out, /MonMotDePasseSecret/);
+    // L'adresse reste lisible : c'est elle qui sert au diagnostic.
+    assert.match(out, /192\.168\.1\.42:41234/);
+  });
+
+  test('les autres commandes sont inchangees', () => {
+    for (const args of [['devices', '-l'], ['connect', '10.0.0.2:5555'], ['mdns', 'services']]) {
+      assert.deepEqual(redactSecrets(args), args);
+    }
+  });
+
+  test('un `pair` sans code ne provoque pas d erreur', () => {
+    assert.deepEqual(redactSecrets(['pair', '10.0.0.2:5555']), ['pair', '10.0.0.2:5555']);
+  });
+
+  test('le masquage suit le decalage des options globales', () => {
+    // `adb -s <serial> pair <adresse> <code>` : le code n'est plus au meme index.
+    const out = redactSecrets(['-s', 'ABC', 'pair', '10.0.0.2:5555', '123456']);
+    assert.doesNotMatch(out.join(' '), /123456/);
+    assert.equal(out[1], 'ABC');
+  });
+
+  test('ne modifie pas le tableau fourni', () => {
+    const args = ['pair', '10.0.0.2:5555', 'secret'];
+    redactSecrets(args);
+    assert.equal(args[2], 'secret');
   });
 });

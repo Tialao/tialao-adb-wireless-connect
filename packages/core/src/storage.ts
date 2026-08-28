@@ -62,8 +62,10 @@ async function saveHistory(devices: StoredDevice[]): Promise<void> {
   const temporary = `${file}.tmp`;
 
   try {
-    await mkdir(dirname(file), { recursive: true });
-    await writeFile(temporary, JSON.stringify(payload, null, 2), 'utf8');
+    // Le fichier n'a rien de secret, mais il cartographie le réseau et le matériel :
+    // inutile de l'offrir aux autres comptes de la machine.
+    await mkdir(dirname(file), { recursive: true, mode: 0o700 });
+    await writeFile(temporary, JSON.stringify(payload, null, 2), { encoding: 'utf8', mode: 0o600 });
 
     // Écriture atomique. Le rename peut échouer temporairement quand le dossier
     // utilisateur est synchronisé par OneDrive, d'où les tentatives successives.

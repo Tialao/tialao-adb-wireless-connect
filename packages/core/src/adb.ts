@@ -10,7 +10,8 @@
  *  - le parsing est délégué à `parse.ts` (fonctions pures, testées sans adb).
  */
 
-import { execFile } from 'node:child_process';
+import { execFile, spawn } from 'node:child_process';
+import type { ChildProcess } from 'node:child_process';
 import { access, constants } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { delimiter, isAbsolute, join } from 'node:path';
@@ -167,19 +168,55 @@ export async function resolveAdbPath(explicit?: string): Promise<AdbLocation | n
  * Un shim `.cmd`/`.bat` (scoop, chocolatey) ne peut pas être lancé directement par
  * `execFile` sous Windows : il faut passer par ComSpec. On ne bascule JAMAIS sur
  * `shell: true`, qui rouvrirait la porte à l'injection d'arguments.
+ *
+ * Chaque argument est mis entre guillemets SANS CONDITION. Une version antérieure ne
+ * le faisait que pour les arguments contenant un espace ou un guillemet — ce qui
+ * laissait passer `&`, `|`, `<`, `>`, `^`, `(` et `)`, tous interprétés par `cmd.exe` :
+ * un hôte `1.2.3.4&calc.exe` faisait exécuter `calc.exe`.
  */
-function adaptForWindowsShim(file: string, args: readonly string[]): [string, string[]] {
+function quoteForCmd(argument: string): string {
+  // `cmd.exe` échappe le guillemet interne par doublement, pas par antislash.
+  return `"${argument.replace(/"/g, '""')}"`;
+}
+
+/**
+ * `%VAR%` est développé par `cmd.exe` MÊME entre guillemets : aucun échappement ne
+ * l'en empêche. Un argument qui en contient ne peut donc pas être transmis sûrement
+ * par un shim, et l'on refuse plutôt que de transmettre une valeur altérée.
+ */
+function rejectsPercentExpansion(args: readonly string[]): string | undefined {
+  return args.find((a) => a.includes('%'));
+}
+
+export function adaptForWindowsShim(
+  file: string,
+  args: readonly string[],
+): [string, string[]] {
   if (!IS_WINDOWS || !/\.(cmd|bat)$/i.test(file)) return [file, [...args]];
+
+  const dangerous = rejectsPercentExpansion([file, ...args]);
+  if (dangerous !== undefined) {
+    throw new TadbError(
+      'INVALID_ARGUMENT',
+      `Argument refusé : « ${dangerous} » contient « % », que cmd.exe développerait.`,
+      {
+        hint: "Renseignez le chemin du binaire adb.exe lui-même plutôt qu'un script .cmd (réglage tialaoAdb.adbPath).",
+      },
+    );
+  }
+
   const comspec = process.env['ComSpec'] ?? 'cmd.exe';
-  const quoted = [file, ...args].map((a) => (/[\s"]/.test(a) ? `"${a.replace(/"/g, '""')}"` : a));
-  return [comspec, ['/d', '/s', '/c', quoted.join(' ')]];
+  const line = [file, ...args].map(quoteForCmd).join(' ');
+  return [comspec, ['/d', '/s', '/c', line]];
 }
 
 export const defaultRunner: ExecRunner = (file, args, options) =>
   new Promise<RawExec>((resolve, reject) => {
     const startedAt = Date.now();
     const [bin, finalArgs] = adaptForWindowsShim(file, args);
-    const command = `${file} ${args.join(' ')}`;
+    // Meme masquage que pour le journal : ce champ voyage dans RawExec et peut
+    // etre affiche par un appelant.
+    const command = `${file} ${redactSecrets(args).join(' ')}`;
 
     const execOptions: Parameters<typeof execFile>[2] = {
       timeout: options.timeoutMs ?? DEFAULT_TIMEOUT_MS,
@@ -234,6 +271,26 @@ export const defaultRunner: ExecRunner = (file, args, options) =>
 /* Façade adb                                                                                */
 /* --------------------------------------------------------------------------------------- */
 
+/**
+ * Masque les secrets avant journalisation.
+ *
+ * `adb pair <adresse> <code>` porte le mot de passe d'association en clair sur sa
+ * ligne de commande. Le journal est destiné à être lu, copié et collé dans un rapport
+ * de bug : ce secret n'a rien à y faire, même s'il est éphémère.
+ */
+export function redactSecrets(args: readonly string[]): string[] {
+  const out = [...args];
+  // Le verbe est en tête, ou juste après un sélecteur `-s <serial>`. On ancre sur ces
+  // deux positions plutôt que sur un `indexOf`, qui masquerait au mauvais endroit si
+  // un argument valait littéralement « pair ».
+  const verbIndex = out[0] === 'pair' ? 0 : out[0] === '-s' && out[2] === 'pair' ? 2 : -1;
+  // Le mot de passe est le second argument positionnel de `pair`.
+  if (verbIndex !== -1 && out.length > verbIndex + 2) {
+    out[verbIndex + 2] = '••••••••';
+  }
+  return out;
+}
+
 export class Adb {
   private readonly options: AdbOptions;
   private readonly runner: ExecRunner;
@@ -273,8 +330,10 @@ export class Adb {
     const result = await this.runner(path, args, execOptions);
 
     this.options.onLog?.({
-      command: `adb ${args.join(' ')}`,
-      args,
+      command: `adb ${redactSecrets(args).join(' ')}`,
+      // Masqué ici aussi : `AdbLogEntry` fait partie de la surface publique, et un
+      // hôte tiers qui journaliserait `args` rouvrirait la fuite.
+      args: redactSecrets(args),
       durationMs: result.durationMs,
       code: result.code,
       stdout: result.stdout,
@@ -283,6 +342,31 @@ export class Adb {
     });
 
     return result;
+  }
+
+  /**
+   * Lance adb en processus long, dont on veut lire la sortie au fil de l'eau.
+   *
+   * Passe par le même adaptateur de shim Windows que `raw()` : sans lui, un adb
+   * installé en `.cmd` ne peut pas être lancé du tout depuis Node 20.12.
+   */
+  async spawn(args: readonly string[]): Promise<ChildProcess> {
+    const { path } = await this.location();
+    const [bin, finalArgs] = adaptForWindowsShim(path, args);
+    this.options.onLog?.({
+      command: `adb ${redactSecrets(args).join(' ')}`,
+      args: redactSecrets(args),
+      durationMs: 0,
+      code: null,
+      stdout: '',
+      stderr: '',
+      timedOut: false,
+    });
+    return spawn(bin, finalArgs, {
+      stdio: ['ignore', 'pipe', 'pipe'],
+      windowsHide: true,
+      ...(this.options.env ? { env: this.options.env } : {}),
+    });
   }
 
   async version(): Promise<AdbVersion> {

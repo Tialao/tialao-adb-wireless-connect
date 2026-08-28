@@ -59,24 +59,39 @@ export function stripAdbNoise(text: string): string[] {
 }
 
 /**
+ * Caractères admis dans un hôte. Volontairement restrictif : une IPv4, un nom d'hôte
+ * ou une IPv6 n'ont besoin de rien d'autre.
+ *
+ * Ce n'est pas de la cosmétique. Ces valeurs finissent en arguments d'un processus, et
+ * sous Windows elles peuvent traverser `cmd.exe` quand adb est installé sous forme de
+ * shim `.cmd` : sans ce filtre, `1.2.3.4&calc.exe` serait une injection de commande.
+ * Le filtre est posé ICI, au point que traversent le CLI, les webviews et le cœur.
+ */
+const HOSTNAME_RE = /^[A-Za-z0-9_](?:[A-Za-z0-9._-]*)$/;
+/** Une IPv6 entre crochets, zone d'interface comprise (`fe80::1%wlan0`). */
+const IPV6_RE = /^[0-9A-Fa-f:.]+(?:%[A-Za-z0-9._-]+)?$/;
+
+/**
  * Découpe `host:port`, en gérant l'IPv6 bracketée `[fe80::1%wlan0]:41234`.
  * Renvoie `null` si ce n'est pas une adresse hôte:port plausible.
  */
 export function parseHostPort(text: string): HostPort | null {
   const value = text.trim().replace(/[.,;]+$/, '');
-  if (!value) return null;
+  if (!value || value.length > 255) return null;
 
   const bracketed = /^\[([^\]]+)\]:(\d{1,5})$/.exec(value);
   if (bracketed) {
+    const host = bracketed[1] as string;
+    if (!IPV6_RE.test(host)) return null;
     const port = Number(bracketed[2]);
-    return isValidPort(port) ? { host: bracketed[1] as string, port } : null;
+    return isValidPort(port) ? { host, port } : null;
   }
 
   // IPv4 ou nom d'hôte : un seul ':' attendu. Plusieurs ':' sans crochets = IPv6 sans port.
   const idx = value.lastIndexOf(':');
   if (idx <= 0 || idx === value.length - 1) return null;
   const host = value.slice(0, idx);
-  if (host.includes(':')) return null;
+  if (!HOSTNAME_RE.test(host)) return null;
   const port = Number(value.slice(idx + 1));
   if (!isValidPort(port)) return null;
   return { host, port };

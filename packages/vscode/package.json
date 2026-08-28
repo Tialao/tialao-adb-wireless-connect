@@ -2,7 +2,7 @@
   "name": "tialao-adb-wireless-connect",
   "displayName": "TIALAO ADB Wireless Connect",
   "description": "Connecte un smartphone Android en ADB sans fil : QR code ou code d'association, sans passer par Android Studio.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "license": "MIT",
   "publisher": "tialao",
   "private": true,
@@ -14,8 +14,19 @@
   "engines": {
     "vscode": "^1.85.0"
   },
-  "categories": ["Other", "Debuggers"],
-  "keywords": ["adb", "android", "wireless", "debugging", "qrcode", "scrcpy", "flutter"],
+  "categories": [
+    "Other",
+    "Debuggers"
+  ],
+  "keywords": [
+    "adb",
+    "android",
+    "wireless",
+    "debugging",
+    "qrcode",
+    "scrcpy",
+    "flutter"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Tialao/tialao-adb-wireless-connect.git",
@@ -26,7 +37,9 @@
     "url": "https://github.com/Tialao/tialao-adb-wireless-connect/issues"
   },
   "main": "./dist/extension.js",
-  "activationEvents": ["onStartupFinished"],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "contributes": {
     "commands": [
       {
@@ -69,11 +82,26 @@
         "command": "tialaoAdb.menu",
         "title": "Open menu",
         "category": "TIALAO ADB"
+      },
+      {
+        "command": "tialaoAdb.mirror",
+        "title": "Mirror device screen",
+        "category": "TIALAO ADB",
+        "icon": "$(device-mobile)"
+      },
+      {
+        "command": "tialaoAdb.openTerminal",
+        "title": "Open ADB terminal",
+        "category": "TIALAO ADB",
+        "icon": "$(terminal)"
       }
     ],
     "menus": {
       "commandPalette": [
-        { "command": "tialaoAdb.menu", "when": "false" }
+        {
+          "command": "tialaoAdb.menu",
+          "when": "false"
+        }
       ]
     },
     "configuration": {
@@ -83,7 +111,7 @@
           "type": "string",
           "default": "adb",
           "markdownDescription": "Chemin vers le binaire `adb`. Laisser `adb` pour utiliser celui du `PATH` ; l'extension cherche aussi automatiquement dans les emplacements standards du SDK Android.",
-          "scope": "machine-overridable"
+          "scope": "machine"
         },
         "tialaoAdb.autoConnectOnStartup": {
           "type": "boolean",
@@ -106,6 +134,36 @@
           "type": "boolean",
           "default": false,
           "markdownDescription": "Redemarrer le serveur adb avec `ADB_MDNS_AUTO_CONNECT` vide, pour empecher adb de se connecter tout seul aux appareils decouverts. **Attention** : le redemarrage du serveur coupe les sessions adb en cours (Gradle, Flutter, scrcpy)."
+        },
+        "tialaoAdb.mirrorMaxSize": {
+          "type": "number",
+          "default": 1280,
+          "minimum": 320,
+          "maximum": 3840,
+          "markdownDescription": "Plus grande dimension de l'image encodee pour le miroir. Reduire allege l'encodage et le reseau ; l'affichage reste redimensionnable librement.",
+          "scope": "machine-overridable"
+        },
+        "tialaoAdb.mirrorBitRate": {
+          "type": "number",
+          "default": 8,
+          "minimum": 1,
+          "maximum": 50,
+          "markdownDescription": "Debit video vise pour le miroir, en Mbit/s.",
+          "scope": "machine-overridable"
+        },
+        "tialaoAdb.mirrorMaxFps": {
+          "type": "number",
+          "default": 0,
+          "minimum": 0,
+          "maximum": 120,
+          "markdownDescription": "Images par seconde maximales pour le miroir. `0` laisse l'appareil decider.",
+          "scope": "machine-overridable"
+        },
+        "tialaoAdb.scrcpyServerPath": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Chemin d'un `scrcpy-server` de remplacement. Laisser vide pour utiliser celui fourni avec l'extension (scrcpy 3.1, verifie par empreinte SHA-256 avant chaque envoi sur l'appareil).",
+          "scope": "machine"
         }
       }
     }
@@ -118,12 +176,18 @@
     "vsce:ls": "vsce ls --no-dependencies"
   },
   "dependencies": {
-    "tialao-adb-wireless": "^0.1.0"
+    "tialao-adb-wireless": "^0.2.0"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
     "@types/vscode": "~1.85.0",
     "@vscode/vsce": "^3.9.2",
     "esbuild": "^0.28.2"
+  },
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": false,
+      "description": "L'extension lance le binaire adb configuré et pousse un serveur sur l'appareil connecté."
+    }
   }
 }

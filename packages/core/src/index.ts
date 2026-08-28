@@ -7,7 +7,7 @@
  * retour et par evenements.
  */
 
-export { Adb, defaultRunner, resolveAdbPath, sleep } from './adb.ts';
+export { Adb, defaultRunner, redactSecrets, resolveAdbPath, sleep } from './adb.ts';
 export type { AdbLocation, AdbLogEntry, AdbOptions, ExecOptions, ExecRunner } from './adb.ts';
 
 export { Emitter } from './emitter.ts';
@@ -41,6 +41,24 @@ export {
   toLines,
   usbSerialFromMdnsSerial,
 } from './parse.ts';
+
+export {
+  KEYCODE,
+  avcCodecFromConfig,
+  SCRCPY_SERVER_SHA256,
+  SCRCPY_SERVER_VERSION,
+  bundledServerPath,
+  generateScid,
+  startMirror,
+} from './scrcpy.ts';
+export type {
+  KeyAction,
+  ScrcpyEvent,
+  ScrcpyOptions,
+  ScrcpySession,
+  ScrcpyVideoFrame,
+  TouchAction,
+} from './scrcpy.ts';
 
 export { pairWithCode, startQrPairing } from './pairing.ts';
 export type {
