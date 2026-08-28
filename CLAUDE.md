@@ -310,7 +310,16 @@ nom est, ou non, un éditeur du Marketplace Microsoft. Ici c'est l'**option 2** 
 `tialao` existe bien sur le Marketplace mais n'y a aucune extension, faute de PAT — et sa
 validation passe par un accès lecteur temporaire accordé à l'ID administrateur
 `9f9ebf84-37d2-648b-bef8-8af4132d803a`. Les trois autres voies réclament un nom de domaine
-homonyme. Demande déposée : `EclipseFdn/open-vsx.org#12846`.
+homonyme. Demande déposée : `EclipseFdn/open-vsx.org#12847`.
+
+**Cette demande DOIT passer par le formulaire web**, jamais par `gh issue create` : seul le
+formulaire applique les labels `namespace` / `operations`, et le tri des mainteneurs se fait
+sur ces labels. Mesure faite sur 60 demandes : 57 labellisées, fermées en 10 h de médiane ;
+les 3 sans label étaient **toutes encore ouvertes**, dont une depuis trois jours. Un
+non-membre ne peut pas rattraper le coup, l'ajout de label exigeant les droits du dépôt.
+Deuxième piège du même gabarit : les sous-choix « Chose one of the following » sont des blocs
+`markdown`, donc **décoratifs** — ni cochables ni transmis. Le sous-choix retenu doit être
+énoncé en clair dans le champ *Claim evidence*.
 
 **L'indexation d'Open VSX est asynchrone** : `ovsx publish` affiche
 `🚀 Published …` immédiatement, mais `GET /api/<ns>/<ext>` répond `Extension not found`
