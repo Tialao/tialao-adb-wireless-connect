@@ -280,4 +280,39 @@ partout :
 
 Le `.vsix` est **identique** pour les deux registres. Dans le workflow de release, chaque étape de
 publication est conditionnée à la présence de son secret : sans le secret, l'étape est sautée
-sans faire échouer la release.
+sans faire échouer la release. **Conséquence à connaître : un job « sauté » apparaît quand
+même en vert dans l'onglet Actions.** Le vert ne prouve donc rien ; seul le journal du job, ou
+l'API du registre, dit si quelque chose a réellement été publié.
+
+**`VSCE_PAT` exige un compte Azure DevOps, et Azure exige une carte bancaire** pour créer une
+organisation — même sur l'offre gratuite. C'est un mur dur : sans carte, pas de Marketplace
+Microsoft. L'éditeur `tialao` y est bien créé, mais aucun jeton ne peut être émis. Open VSX,
+lui, n'a aucune dépendance à Azure.
+
+**La chaîne Open VSX se signe en quatre étapes, dans cet ordre, et aucune n'est devinable :**
+
+1. compte Open VSX via GitHub (le *login name* est le pseudo GitHub) ;
+2. compte Eclipse Foundation, dans lequel il faut renseigner le **GitHub Username** — c'est ce
+   champ, et lui seul, qui rattache les deux identités ;
+3. **ECA** (Eclipse Contributor Agreement) signé ;
+4. depuis le profil Open VSX, « Log in with Eclipse », puis signature de l'**Open VSX Publisher
+   Agreement** — un document **distinct** de l'ECA. Tant qu'il manque, le profil affiche un
+   bandeau bloquant et l'onglet *Access Tokens* ne sert à rien.
+
+Puis : *Namespaces* → créer l'espace de noms, qui doit être **exactement** le `publisher` du
+`package.json`. Le bandeau orange « This namespace is not verified » est **normal et non
+bloquant** — il ne retire que le badge de propriété.
+
+**L'indexation d'Open VSX est asynchrone** : `ovsx publish` affiche
+`🚀 Published …` immédiatement, mais `GET /api/<ns>/<ext>` répond `Extension not found`
+pendant une trentaine de secondes. Ne pas conclure à un échec sur une seule interrogation.
+
+**`npm publish --provenance` exige `id-token: write`** sur le job. Les permissions déclarées à
+la racine du workflow (`contents: write`) ne suffisent pas et ne se complètent pas : un bloc
+`permissions` au niveau du job **remplace** celui de la racine, il doit donc redéclarer
+`contents: read`. La panne est invisible tant qu'aucun `NPM_TOKEN` n'est configuré, puisque
+l'étape entière est sautée.
+
+**npmjs.com filtre les inscriptions par réputation d'adresse IP.** Derrière un NAT d'opérateur
+(adresse partagée), la page d'inscription peut répondre « Accès temporairement restreint » sans
+que le compte soit en cause. Contournement : passer par le partage de connexion d'un téléphone.
