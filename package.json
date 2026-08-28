@@ -9,7 +9,7 @@
     "packages/vscode"
   ],
   "engines": {
-    "node": ">=20.11"
+    "node": ">=22.18"
   },
   "scripts": {
     "build": "npm run build -w packages/core && npm run typecheck -w packages/vscode && npm run build -w packages/vscode",

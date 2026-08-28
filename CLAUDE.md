@@ -146,6 +146,18 @@ usuelles sous Windows : `adb.exe` non autorisé par le pare-feu Defender, ou pro
 « Public ». → Après 15 sondages vides, un événement `silent` remonte un message explicite et
 propose la saisie manuelle de l'`ip:port`.
 
+**La CI doit tourner sur Node 24, pas 20.** Les tests s'exécutent directement sur les sources
+TypeScript (type-stripping natif) et passent un glob à `node --test` : Node 20 ne sait faire ni
+l'un ni l'autre, et échoue sur `Could not find 'test/**/*.test.ts'`. Le piège est sournois parce
+que tout passe en local (Node 24) et ne casse qu'en CI. Le paquet publié, lui, est du JavaScript
+compilé et reste compatible Node 20.11 — d'où deux `engines` différents : `>=22.18` à la racine
+(développement et tests), `>=20.11` dans `packages/core` (exécution du paquet publié).
+
+**Sous Git Bash (Windows), les chemins Android sont réécrits.** `adb push fichier /data/local/tmp/`
+devient `C:/Program Files/Git/data/local/tmp/` à cause de la conversion de chemins MSYS. Préfixer
+par `MSYS_NO_PATHCONV=1`, ou passer par PowerShell. Le code du projet n'est pas concerné : il
+utilise `execFile`, sans shell.
+
 **Le timer de sondage mDNS ne doit surtout PAS être `unref()`.** Pendant l'attente du scan, ce
 timer est la seule chose qui maintienne la boucle d'événements en vie : avec `unref()`,
 `tadb pair-qr` sortait tout seul (code 13) juste après le premier sondage, sans jamais laisser le
