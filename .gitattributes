@@ -1,0 +1,9 @@
+* text=auto eol=lf
+*.ps1 text eol=crlf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+# Les fixtures capturent des sorties adb brutes : ne JAMAIS normaliser leurs fins de ligne,
+# c'est precisement le CRLF Windows qu'elles servent a tester.
+packages/core/test/fixtures/** -text
+*.png binary
+*.vsix binary

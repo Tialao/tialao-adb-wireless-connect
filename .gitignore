@@ -1,0 +1,11 @@
+node_modules/
+dist/
+*.tsbuildinfo
+*.vsix
+.vscode-test/
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+# Dossier de travail temporaire, non versionne
+.scratch/

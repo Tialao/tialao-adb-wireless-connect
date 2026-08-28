@@ -1,0 +1,53 @@
+{
+  "name": "tialao-adb-wireless",
+  "version": "0.1.0",
+  "description": "Coeur autonome + CLI tadb : connexion ADB sans fil (QR code / code d'association), sans Android Studio",
+  "license": "MIT",
+  "author": "TIALAO",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "tadb": "./bin/tadb.mjs"
+  },
+  "files": [
+    "dist",
+    "bin",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20.11"
+  },
+  "keywords": [
+    "adb", "android", "wireless", "debugging", "qrcode", "mdns", "pairing", "tialao"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Tialao/tialao-adb-wireless-connect.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://github.com/Tialao/tialao-adb-wireless-connect#readme",
+  "bugs": {
+    "url": "https://github.com/Tialao/tialao-adb-wireless-connect/issues"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "test": "node --test \"test/**/*.test.ts\"",
+    "test:watch": "node --test --watch \"test/**/*.test.ts\""
+  },
+  "dependencies": {
+    "qrcode": "^1.5.4"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "@types/qrcode": "^1.5.5"
+  }
+}

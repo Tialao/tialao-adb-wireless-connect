@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // Ce package est BUNDLE par esbuild, pas execute par Node tel quel : on le
+    // typecheck donc comme un bundler le resoudrait. `nodenext` le traiterait comme
+    // du CommonJS (pas de "type": "module" ici, et il ne doit pas en avoir : l'hote
+    // d'extension fait un require() sur dist/extension.js).
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "rootDir": "src",
+    "lib": ["ES2023", "DOM"],
+    "types": ["node", "vscode"]
+  },
+  "include": ["src/**/*.ts"]
+}

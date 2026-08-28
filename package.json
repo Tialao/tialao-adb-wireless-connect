@@ -1,0 +1,29 @@
+{
+  "name": "tialao-adb-wireless-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "TIALAO ADB Wireless Connect - connexion ADB sans fil (QR code / code d'association)",
+  "license": "MIT",
+  "workspaces": [
+    "packages/core",
+    "packages/vscode"
+  ],
+  "engines": {
+    "node": ">=20.11"
+  },
+  "scripts": {
+    "build": "npm run build -w packages/core && npm run typecheck -w packages/vscode && npm run build -w packages/vscode",
+    "typecheck": "tsc -b && npm run typecheck -w packages/vscode",
+    "test": "npm run test -w packages/core",
+    "lint": "eslint .",
+    "package": "npm run build && npm run package -w packages/vscode",
+    "clean": "node -e \"for (const p of ['packages/core/dist','packages/vscode/dist','tsconfig.tsbuildinfo']) require('node:fs').rmSync(p,{recursive:true,force:true})\""
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.0",
+    "eslint": "^9.39.0",
+    "sharp": "^0.35.4",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.46.0"
+  }
+}
