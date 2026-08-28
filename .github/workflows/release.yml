@@ -1,0 +1,184 @@
+name: Release
+
+# Déclenché par un tag `v*`. Construit, teste, publie la GitHub Release avec le .vsix,
+# puis publie sur npm / Marketplace VS Code / Open VSX — chaque publication étant
+# conditionnée à la présence de son secret, pour qu'une release fonctionne même quand
+# tous les jetons ne sont pas encore configurés.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build et paquet
+    runs-on: ubuntu-latest
+    outputs:
+      vsix: ${{ steps.package.outputs.vsix }}
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          registry-url: https://registry.npmjs.org
+
+      - name: Installer les dépendances
+        run: npm ci
+
+      - name: Vérifier les types
+        run: npm run typecheck
+
+      - name: Tests unitaires
+        run: npm test
+
+      - name: Construire
+        run: npm run build
+
+      - name: Empaqueter le .vsix
+        id: package
+        working-directory: packages/vscode
+        run: |
+          npx @vscode/vsce package --no-dependencies --out ../../tialao-adb-wireless-connect.vsix
+          echo "vsix=tialao-adb-wireless-connect.vsix" >> "$GITHUB_OUTPUT"
+
+      - name: Auditer le contenu du .vsix
+        working-directory: packages/vscode
+        run: npx @vscode/vsce ls --no-dependencies
+
+      - name: Relever la version
+        id: version
+        run: echo "version=$(node -p "require('./packages/vscode/package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vsix
+          path: tialao-adb-wireless-connect.vsix
+          if-no-files-found: error
+
+  release:
+    name: GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: vsix
+
+      - name: Publier la release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: tialao-adb-wireless-connect.vsix
+          generate_release_notes: true
+          body: |
+            ## Installation
+
+            **Script (installe sur tous les éditeurs détectés)**
+
+            ```bash
+            curl -fsSL https://raw.githubusercontent.com/${{ github.repository }}/main/scripts/install.sh | bash
+            ```
+
+            ```powershell
+            irm https://raw.githubusercontent.com/${{ github.repository }}/main/scripts/install.ps1 | iex
+            ```
+
+            **Manuellement** — le même `.vsix` fonctionne sur VS Code, Cursor, Windsurf,
+            VSCodium, Trae et Kiro :
+
+            ```bash
+            code --install-extension tialao-adb-wireless-connect.vsix
+            ```
+
+            **CLI seul, pour tous les autres éditeurs**
+
+            ```bash
+            npm install -g tialao-adb-wireless && tadb pair-qr
+            ```
+
+  publish-npm:
+    name: npm (CLI tadb)
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          registry-url: https://registry.npmjs.org
+
+      - name: Vérifier la présence du secret
+        id: guard
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -n "$NPM_TOKEN" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::NPM_TOKEN absent — publication npm ignorée."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - if: steps.guard.outputs.ready == 'true'
+        run: npm ci
+
+      - if: steps.guard.outputs.ready == 'true'
+        run: npm run build -w packages/core
+
+      - name: Publier sur npm
+        if: steps.guard.outputs.ready == 'true'
+        working-directory: packages/core
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public --provenance
+
+  publish-marketplace:
+    name: Marketplace VS Code
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: vsix
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Publier sur le Marketplace Visual Studio
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: |
+          if [ -z "$VSCE_PAT" ]; then
+            echo "::notice::VSCE_PAT absent — publication Marketplace ignorée."
+            exit 0
+          fi
+          npx @vscode/vsce publish --packagePath tialao-adb-wireless-connect.vsix --pat "$VSCE_PAT"
+
+  publish-openvsx:
+    name: Open VSX (Cursor, Windsurf, VSCodium)
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: vsix
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Publier sur Open VSX
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        run: |
+          if [ -z "$OVSX_PAT" ]; then
+            echo "::notice::OVSX_PAT absent — publication Open VSX ignorée."
+            exit 0
+          fi
+          npx ovsx publish tialao-adb-wireless-connect.vsix --pat "$OVSX_PAT"
