@@ -1,6 +1,6 @@
 {
   "name": "tialao-adb-wireless-monorepo",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "TIALAO ADB Wireless Connect - connexion ADB sans fil (QR code / code d'association)",
   "license": "MIT",

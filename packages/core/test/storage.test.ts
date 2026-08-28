@@ -18,7 +18,12 @@ before(async () => {
 after(async () => {
   if (previousHome === undefined) delete process.env['TIALAO_ADB_HOME'];
   else process.env['TIALAO_ADB_HOME'] = previousHome;
-  await rm(dir, { recursive: true, force: true });
+  // Sous Windows, une suppression récursive juste après une écriture peut échouer
+  // (indexation, antivirus) : on laisse fs réessayer, et un dossier temporaire
+  // résiduel ne doit pas faire échouer la suite de tests.
+  await rm(dir, { recursive: true, force: true, maxRetries: 8, retryDelay: 60 }).catch(
+    () => undefined,
+  );
 });
 
 beforeEach(async () => {

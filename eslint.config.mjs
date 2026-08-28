@@ -27,9 +27,20 @@ const webviewGlobals = {
   window: 'readonly',
   document: 'readonly',
   setTimeout: 'readonly',
+  setInterval: 'readonly',
+  performance: 'readonly',
+  atob: 'readonly',
+  getComputedStyle: 'readonly',
+  ResizeObserver: 'readonly',
   acquireVsCodeApi: 'readonly',
   HTMLElement: 'readonly',
   HTMLStyleElement: 'readonly',
+  HTMLCanvasElement: 'readonly',
+  HTMLSelectElement: 'readonly',
+  // WebCodecs : disponible dans l'hote Electron de VS Code depuis Chromium 94,
+  // donc bien avant la version 1.85 ciblee par `engines`.
+  VideoDecoder: 'readonly',
+  EncodedVideoChunk: 'readonly',
 };
 
 export default tseslint.config(

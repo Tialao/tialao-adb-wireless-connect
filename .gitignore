@@ -12,3 +12,7 @@ Thumbs.db
 
 # Brief initial du projet, personnel : non versionne
 prompt-extension-adb-wireless.md
+
+# Bancs de test temporaires
+.playwright-mcp/
+.scratch/

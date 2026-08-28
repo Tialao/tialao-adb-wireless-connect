@@ -15,6 +15,8 @@ C'est le « Wireless debugging / Pair device » d'Android Studio, directement da
   associés.
 - **Mode TCP/IP** pour Android 10 et antérieurs, avec récupération automatique de l'adresse IP.
 - **Redémarrer le serveur adb** — le remède au statut `offline`.
+- **Miroir d'écran** — l'écran du téléphone dans un onglet, redimensionnable par poignées et
+  pilotable à la souris et au clavier, comme le panneau « Running Devices » d'Android Studio.
 - **Barre d'état** cliquable indiquant l'appareil connecté, et un **journal** consignant chaque
   commande adb avec sa sortie brute.
 
@@ -74,10 +76,17 @@ tadb pair-qr
 
 Le CLI dispose aussi d'un mode `--json` pour être piloté par un script.
 
-## Vie privée
+## Vie privée et sécurité
 
 Aucune télémétrie, aucune requête réseau sortante. Le QR code est généré localement, et toutes les
 opérations passent par le binaire `adb` de votre machine.
+
+Le mot de passe d'association est masqué dans le journal. Aucune commande n'est construite par
+concaténation de chaînes : tout passe par `execFile` avec un tableau d'arguments. Les webviews
+appliquent une CSP stricte et ne peuvent déclencher qu'une liste blanche de commandes.
+
+Le miroir d'écran utilise le serveur **scrcpy 3.1** (Apache 2.0), fourni avec l'extension et
+vérifié par empreinte SHA-256 avant chaque envoi sur l'appareil.
 
 ## Licence
 

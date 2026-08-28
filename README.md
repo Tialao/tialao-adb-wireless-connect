@@ -39,6 +39,8 @@ disponible partout : dans VS Code et ses forks via une extension, et dans n'impo
 | **Enable TCP/IP mode** | Pour Android 10 et antérieurs : bascule un appareil USB en TCP/IP, puis s'y connecte |
 | **Restart ADB server** | `kill-server` puis `start-server` — le remède au statut `offline` |
 | **Show connected devices** | `adb devices -l` mis en forme dans le journal |
+| **Mirror device screen** | L'écran du téléphone dans un onglet, redimensionnable et pilotable à la souris et au clavier |
+| **Open ADB terminal** | Un terminal montrant l'état d'adb et les processus adb/scrcpy en cours |
 
 Plus : un indicateur dans la barre d'état (rafraîchi toutes les 5 s, cliquable), un journal
 « TIALAO ADB » qui consigne chaque commande adb et sa sortie brute, et des messages d'erreur qui
@@ -160,6 +162,32 @@ tadb pair-qr --json | while read -r line; do
   echo "$line" | jq -r 'select(.type=="connected") | .device.serial'
 done
 ```
+
+## Miroir d'écran
+
+**TIALAO ADB: Mirror device screen** affiche l'écran du téléphone dans un onglet de
+l'éditeur, comme le panneau « Running Devices » d'Android Studio.
+
+- **Redimensionnable** : huit poignées sur les bords et les coins, un zoom, et un bouton
+  d'ajustement. Le ratio est toujours préservé et l'écran tient en entier, sans
+  défilement. `Ctrl + molette` zoome également.
+- **Pilotable** : clic pour toucher, glisser pour balayer, molette pour faire défiler.
+  Le clavier écrit directement dans le téléphone, accents compris. Une barre d'outils
+  donne Retour, Accueil, Applications récentes, notifications, rotation, volume et
+  marche/veille.
+
+Le miroir s'appuie sur le **serveur scrcpy 3.1**, fourni avec l'extension et poussé sur
+l'appareil au démarrage de la session. Son empreinte SHA-256 est vérifiée avant chaque
+envoi : ce binaire s'exécute sur votre téléphone, il n'est pas pris sur parole. Il est
+distribué sous licence Apache 2.0, dont une copie accompagne l'extension.
+
+Trois réglages permettent d'ajuster le compromis netteté/fluidité :
+`tialaoAdb.mirrorMaxSize` (défaut 1280), `tialaoAdb.mirrorBitRate` (8 Mbit/s) et
+`tialaoAdb.mirrorMaxFps`. Réduire la taille allège l'encodage sans changer la taille
+d'affichage, qui reste libre.
+
+> Le miroir demande **Android 11 ou plus récent** et un appareil déjà connecté. Il ne
+> fonctionne pas sur un appareil `offline` ou seulement associé.
 
 ## Couverture par éditeur
 
@@ -361,6 +389,27 @@ git tag v0.1.1 && git push --follow-tags
 1. Connectez-vous sur [npmjs.com](https://www.npmjs.com/).
 2. *Access Tokens* → **Generate New Token** → type **Automation** (il passe la 2FA en CI).
 3. Déposez le jeton sous le nom `NPM_TOKEN`.
+
+## Vie privée et sécurité
+
+- **Aucune télémétrie, aucune requête réseau sortante.** Le QR code est généré
+  localement ; toutes les opérations passent par le binaire `adb` de votre machine.
+- **Le mot de passe d'association n'est jamais journalisé.** Il figure pourtant sur la
+  ligne de commande `adb pair` : il est masqué avant écriture dans le journal, qui est
+  fait pour être lu et collé dans un rapport de bug.
+- **Aucune commande n'est construite par concaténation de chaînes.** Tout passe par
+  `execFile` avec un tableau d'arguments, jamais par un shell — une règle ESLint
+  interdit `exec` et `execSync` dans tout le projet.
+- **Les webviews appliquent une CSP stricte** : `default-src 'none'`, script autorisé
+  par nonce uniquement, aucune ressource distante. Les commandes qu'ils peuvent
+  déclencher passent par une liste blanche, et les valeurs qu'ils envoient sont
+  revalidées côté extension avant d'atteindre un processus.
+- **Le serveur scrcpy est vérifié par empreinte SHA-256** avant chaque envoi sur
+  l'appareil.
+- **Rien n'écoute sur une interface publique.** Le tunnel du miroir est un
+  `adb forward` vers `127.0.0.1`, sur un port éphémère libéré en fin de session.
+- **L'historique des appareils** ne contient ni mot de passe ni secret : seulement un
+  nom, un identifiant stable et la dernière adresse vue.
 
 ## Licence
 

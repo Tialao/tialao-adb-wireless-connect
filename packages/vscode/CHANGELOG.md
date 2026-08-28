@@ -3,6 +3,47 @@
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
+## [0.2.0] — 2026-08-28
+
+### Ajouté
+
+- **Miroir d'écran** — l'écran du téléphone dans un onglet de l'éditeur, décodé en H.264
+  par WebCodecs. Cadre redimensionnable par huit poignées, zoom, ajustement automatique
+  à la fenêtre : l'écran tient toujours en entier, sans défilement.
+- **Contrôle depuis le miroir** — clic, glisser, molette, clavier (accents compris), et
+  une barre d'outils : Retour, Accueil, Applications récentes, notifications, rotation,
+  volume, marche/veille.
+- Le serveur **scrcpy 3.1** est fourni avec l'extension (Apache 2.0). Son empreinte
+  SHA-256 est vérifiée avant chaque envoi sur l'appareil.
+- **Barre d'actions** dans le panneau d'association : connecter, déconnecter, écran,
+  appareils, code, terminal, serveur.
+- **Association par code à six chiffres depuis le panneau**, avec détection automatique
+  de l'adresse : le téléphone la publie en mDNS dès l'ouverture de l'écran d'association.
+- **Fenêtres centrées** pour la saisie d'adresse, la liste des appareils et la
+  confirmation de déconnexion, au lieu des boîtes natives dont la largeur n'est pas
+  modifiable par une extension.
+- Le **mot de passe d'association est masqué** par défaut, avec un bouton pour l'afficher.
+- Commande **Open ADB terminal** : état d'adb et processus adb/scrcpy en cours.
+
+### Corrigé
+
+- **Le miroir ne démarrait qu'une fois sur deux.** L'identifiant de session `scid` était
+  tiré sur 32 bits alors que scrcpy le relit avec `Integer.parseInt(s, 16)`, un entier
+  signé : toute valeur au-delà de 2^31 - 1 faisait échouer le serveur.
+- **L'écran restait noir** malgré un décodage correct : la CSP du panneau miroir omettait
+  le nonce sur `style-src`, ce qui bloquait la balise portant la taille du cadre.
+- Un appareil connecté sans fil apparaît deux fois dans `adb devices` (entrée TCP et
+  entrée mDNS) ; les deux sont désormais regroupées.
+- Le sondage mDNS ne laisse plus le processus se terminer prématurément.
+
+### Sécurité
+
+- **Le mot de passe d'association n'apparaît plus dans le journal** — il figurait en clair
+  sur la ligne de commande `adb pair`.
+- Les commandes déclenchables depuis un webview passent par une **liste blanche**.
+- Les adresses et codes venus d'un webview sont **revalidés côté extension** avant d'être
+  passés à un processus, au lieu de faire confiance à la validation du client.
+
 ## [0.1.0] — 2026-08-28
 
 Première version.

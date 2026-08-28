@@ -191,6 +191,58 @@ refuserait la syntaxe ESM des sources.
 API plus récente que le `engines` déclaré est exactement ce qui casse sur Cursor, qui suit VS Code
 avec du retard.
 
+## Le miroir d'écran (protocole scrcpy)
+
+Serveur **scrcpy 3.1** redistribué dans `packages/core/vendor/scrcpy-server` (Apache 2.0,
+licence jointe). Son empreinte SHA-256 est vérifiée **avant chaque envoi sur l'appareil** :
+ce binaire s'exécute sur le téléphone de l'utilisateur, il n'est pas pris sur parole.
+Empreinte attendue, identique au `scrcpy-server-v3.1` officiel :
+`958f0944a62f23b1f33a16e9eb14844c1a04b882ca175a738c16d23cb22b86c0`.
+
+Enchaînement : `adb push` → lancement par `app_process` (qui ouvre le socket local abstrait
+`scrcpy_<scid>`) → `adb forward tcp:0` → le client ouvre **deux** connexions, la première
+étant le canal vidéo, la seconde le canal de contrôle. **Le serveur n'émet rien tant que les
+deux ne sont pas établies** — piège classique : ouvrir puis fermer le socket vidéo avant
+d'ouvrir celui de contrôle donne un flux muet.
+
+En-tête du canal vidéo, relevé octet par octet sur SM-A175F :
+
+```text
+[0]        octet sentinelle 0x00
+[1..64]    nom de l'appareil, complété par des NUL   -> "SM-A175F"
+[65..68]   identifiant de codec en ASCII             -> "h264"
+[69..72]   largeur  (uint32 gros-boutiste)
+[73..76]   hauteur  (uint32 gros-boutiste)
+```
+
+puis, en boucle : 8 octets de pts et drapeaux (bit 63 = paquet de configuration SPS/PPS,
+bit 62 = image clé), 4 octets de taille, puis du H.264 en **Annex B** (`00 00 00 01`).
+
+**Le `scid` doit tenir sur 31 bits, pas 32.** Le serveur le relit avec
+`Integer.parseInt(scid, 16)`, donc un entier **signé**. Un tirage sur 8 chiffres hexadécimaux
+pleins produit une valeur sur deux au-delà de 2^31 - 1, et le serveur meurt sur
+`NumberFormatException: For input string: "c8a65c1c" under radix 16`. D'où `generateScid()`,
+borné à `0x7fffffff`, et un test de régression sur 5000 tirages. Le bug ne se manifestant
+qu'une fois sur deux, il a longtemps échappé aux essais.
+
+**La chaîne de codec de WebCodecs se dérive du SPS** : les trois octets suivant l'en-tête NAL
+`0x67` donnent `avc1.<profil><contraintes><niveau>` — ici `avc1.64001f`. Sans elle,
+`VideoDecoder.configure()` ne peut pas être appelé.
+
+**Le canal de contrôle** est purement client → serveur. Message de touche, validé sur
+l'appareil : `type(1) action(1) keycode(4) repeat(4) metaState(4)`, soit 14 octets.
+
+**`import.meta.url` est vide une fois bundlé en CommonJS** par esbuild, ce qui rend
+`bundledServerPath()` inutilisable depuis l'extension. Celle-ci passe donc toujours
+`serverPath` explicitement, résolu depuis `extensionUri`.
+
+**Les trames voyagent en base64** jusqu'au webview : `postMessage` sérialise en JSON, et un
+`Uint8Array` y deviendrait un objet indexé, ruineux en performance.
+
+**Un appareil peut n'être connu d'adb que sous sa forme mDNS**
+(`adb-<serial>-XXXXXX._adb-tls-connect._tcp`) et non en `ip:port`. `push` et `forward`
+fonctionnent avec les deux formes — vérifié.
+
 ## Commandes utiles
 
 ```bash
