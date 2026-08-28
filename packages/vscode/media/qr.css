@@ -1,0 +1,384 @@
+/*
+ * Feuille de style du panneau d'association.
+ *
+ * Tout est construit sur les variables `--vscode-*` : le panneau est donc correct en
+ * thème clair comme en thème sombre sans une seule règle conditionnelle.
+ *
+ * SEULE EXCEPTION, et elle est délibérée : le cadre du QR reste clair en toutes
+ * circonstances. Un QR qui suivrait le thème sombre, ou un QR inversé, n'est pas
+ * scanné de manière fiable par les appareils Android.
+ */
+
+:root {
+  --tadb-radius: 14px;
+  --tadb-radius-sm: 8px;
+  --tadb-gap: 20px;
+  --tadb-accent: var(--vscode-textLink-foreground, #3794ff);
+  --tadb-border: var(--vscode-panel-border, rgba(128, 128, 128, 0.35));
+  --tadb-muted: var(--vscode-descriptionForeground, #8b949e);
+  --tadb-ok: var(--vscode-testing-iconPassed, #3fb950);
+  --tadb-warn: var(--vscode-editorWarning-foreground, #d29922);
+  --tadb-err: var(--vscode-editorError-foreground, #f85149);
+  --tadb-progress: 0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: clamp(16px, 4vw, 40px) clamp(12px, 4vw, 40px);
+  font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size, 13px);
+  color: var(--vscode-foreground);
+  background: var(--vscode-editor-background);
+  display: flex;
+  justify-content: center;
+}
+
+.shell {
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--tadb-gap);
+}
+
+/* ---------------------------------------------------------------- En-tête */
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: clamp(1.05rem, 1rem + 0.6vw, 1.35rem);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.header p {
+  margin: 0;
+  color: var(--tadb-muted);
+  line-height: 1.5;
+}
+
+/* ---------------------------------------------------------------- Carte QR */
+
+.qr-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: clamp(16px, 3vw, 24px);
+  border: 1px solid var(--tadb-border);
+  border-radius: var(--tadb-radius);
+  background: var(--vscode-editorWidget-background, var(--vscode-editor-background));
+}
+
+/*
+ * Le cadre blanc du QR. Sa couleur ne dépend PAS du thème : c'est la condition
+ * pour que le code reste scannable dans un éditeur en thème sombre.
+ */
+.qr-frame {
+  width: clamp(180px, 58vw, 280px);
+  aspect-ratio: 1;
+  padding: 10px;
+  border-radius: var(--tadb-radius-sm);
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.28), 0 8px 24px rgba(0, 0, 0, 0.12);
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  transform: scale(0.97);
+  animation: tadb-appear 320ms ease-out forwards;
+}
+
+.qr-frame svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.qr-frame.is-spent {
+  /* Une fois le QR consommé, on le grise : il n'est plus valable. */
+  filter: grayscale(1);
+  opacity: 0.4;
+  transition: opacity 240ms ease, filter 240ms ease;
+}
+
+@keyframes tadb-appear {
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.qr-hint {
+  margin: 0;
+  text-align: center;
+  color: var(--tadb-muted);
+  line-height: 1.6;
+  max-width: 42ch;
+}
+
+.qr-hint strong {
+  color: var(--vscode-foreground);
+  font-weight: 600;
+}
+
+/* ---------------------------------------------------------------- Identifiants */
+
+.creds {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px 12px;
+  width: 100%;
+  padding-top: 4px;
+  border-top: 1px solid var(--tadb-border);
+}
+
+.creds dt {
+  color: var(--tadb-muted);
+  white-space: nowrap;
+}
+
+.creds dd {
+  margin: 0;
+  font-family: var(--vscode-editor-font-family, monospace);
+  font-size: 0.95em;
+  overflow-wrap: anywhere;
+}
+
+.copy {
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--tadb-muted);
+  cursor: pointer;
+  padding: 3px 8px;
+  font-family: inherit;
+  font-size: 0.85em;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.copy:hover {
+  background: var(--vscode-toolbar-hoverBackground, rgba(128, 128, 128, 0.18));
+  color: var(--vscode-foreground);
+}
+
+.copy:focus-visible {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: 1px;
+}
+
+/* ---------------------------------------------------------------- Étapes */
+
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.86em;
+  color: var(--tadb-muted);
+  min-width: 0;
+}
+
+.step .bar {
+  height: 3px;
+  border-radius: 999px;
+  background: var(--tadb-border);
+  overflow: hidden;
+  position: relative;
+}
+
+.step .bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--tadb-accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 300ms ease;
+}
+
+.step .label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.step.is-done .bar::after {
+  transform: scaleX(1);
+}
+
+.step.is-done .label {
+  color: var(--vscode-foreground);
+}
+
+.step.is-active .bar::after {
+  transform: scaleX(var(--tadb-progress, 0.35));
+  animation: tadb-pulse 1.6s ease-in-out infinite;
+}
+
+.step.is-active .label {
+  color: var(--vscode-foreground);
+  font-weight: 600;
+}
+
+@keyframes tadb-pulse {
+  50% {
+    opacity: 0.55;
+  }
+}
+
+/* ---------------------------------------------------------------- Statut */
+
+.status {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.status .current {
+  font-weight: 600;
+}
+
+.status .countdown {
+  color: var(--tadb-muted);
+  font-variant-numeric: tabular-nums;
+  font-family: var(--vscode-editor-font-family, monospace);
+  font-size: 0.9em;
+}
+
+/* ---------------------------------------------------------------- Messages */
+
+.notice {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: var(--tadb-radius-sm);
+  border-left: 3px solid var(--tadb-warn);
+  background: var(--vscode-inputValidation-warningBackground, rgba(210, 153, 34, 0.12));
+  line-height: 1.5;
+}
+
+.notice.is-error {
+  border-left-color: var(--tadb-err);
+  background: var(--vscode-inputValidation-errorBackground, rgba(248, 81, 73, 0.12));
+}
+
+.notice.is-success {
+  border-left-color: var(--tadb-ok);
+  background: var(--vscode-inputValidation-infoBackground, rgba(63, 185, 80, 0.12));
+}
+
+.notice .hint {
+  color: var(--tadb-muted);
+  font-size: 0.92em;
+}
+
+/* ---------------------------------------------------------------- Actions */
+
+.actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+button.action {
+  flex: 1 1 auto;
+  min-width: 140px;
+  padding: 7px 14px;
+  border-radius: 5px;
+  border: 1px solid transparent;
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+  background: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+  transition: background 120ms ease;
+}
+
+button.action:hover {
+  background: var(--vscode-button-hoverBackground);
+}
+
+button.action.secondary {
+  background: var(--vscode-button-secondaryBackground, transparent);
+  color: var(--vscode-button-secondaryForeground, var(--vscode-foreground));
+  border-color: var(--tadb-border);
+}
+
+button.action.secondary:hover {
+  background: var(--vscode-button-secondaryHoverBackground, var(--vscode-toolbar-hoverBackground));
+}
+
+button.action:focus-visible {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: 2px;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* ----------------------------------------------- Panneau étroit (colonne latérale) */
+
+/*
+ * Un webview VS Code est très souvent réduit à une colonne de ~300 px. Le QR doit y
+ * rester grand et scannable, et les étapes passent en deux lignes plutôt que d'être
+ * écrasées en quatre colonnes illisibles.
+ */
+@media (max-width: 420px) {
+  .steps {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px 8px;
+  }
+
+  .creds {
+    grid-template-columns: 1fr auto;
+  }
+
+  .creds dt {
+    grid-column: 1 / -1;
+    font-size: 0.85em;
+  }
+
+  .qr-frame {
+    width: min(100%, 260px);
+  }
+
+  button.action {
+    min-width: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .qr-frame {
+    opacity: 1;
+    transform: none;
+  }
+}

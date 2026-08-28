@@ -1,0 +1,13 @@
+# Tout est bundle dans dist/extension.js : embarquer node_modules ferait exploser la
+# taille du .vsix et vsce gere mal les dependances liees d'un monorepo.
+node_modules/**
+src/**
+test/**
+esbuild.mjs
+tsconfig.json
+tsconfig.*.json
+.eslintrc*
+**/*.ts
+**/*.map
+**/.gitignore
+.vscode/**

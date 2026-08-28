@@ -1,0 +1,129 @@
+{
+  "name": "tialao-adb-wireless-connect",
+  "displayName": "TIALAO ADB Wireless Connect",
+  "description": "Connecte un smartphone Android en ADB sans fil : QR code ou code d'association, sans passer par Android Studio.",
+  "version": "0.1.0",
+  "license": "MIT",
+  "publisher": "tialao",
+  "private": true,
+  "icon": "icon.png",
+  "galleryBanner": {
+    "color": "#1f2430",
+    "theme": "dark"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Other", "Debuggers"],
+  "keywords": ["adb", "android", "wireless", "debugging", "qrcode", "scrcpy", "flutter"],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Tialao/tialao-adb-wireless-connect.git",
+    "directory": "packages/vscode"
+  },
+  "homepage": "https://github.com/Tialao/tialao-adb-wireless-connect#readme",
+  "bugs": {
+    "url": "https://github.com/Tialao/tialao-adb-wireless-connect/issues"
+  },
+  "main": "./dist/extension.js",
+  "activationEvents": ["onStartupFinished"],
+  "contributes": {
+    "commands": [
+      {
+        "command": "tialaoAdb.pairQr",
+        "title": "Pair device with QR code",
+        "category": "TIALAO ADB",
+        "icon": "$(device-mobile)"
+      },
+      {
+        "command": "tialaoAdb.pairCode",
+        "title": "Pair device with pairing code",
+        "category": "TIALAO ADB"
+      },
+      {
+        "command": "tialaoAdb.connect",
+        "title": "Connect to device",
+        "category": "TIALAO ADB"
+      },
+      {
+        "command": "tialaoAdb.disconnect",
+        "title": "Disconnect device",
+        "category": "TIALAO ADB"
+      },
+      {
+        "command": "tialaoAdb.tcpip",
+        "title": "Enable TCP/IP mode (legacy, Android 10 and below)",
+        "category": "TIALAO ADB"
+      },
+      {
+        "command": "tialaoAdb.restartServer",
+        "title": "Restart ADB server",
+        "category": "TIALAO ADB"
+      },
+      {
+        "command": "tialaoAdb.showDevices",
+        "title": "Show connected devices",
+        "category": "TIALAO ADB"
+      },
+      {
+        "command": "tialaoAdb.menu",
+        "title": "Open menu",
+        "category": "TIALAO ADB"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        { "command": "tialaoAdb.menu", "when": "false" }
+      ]
+    },
+    "configuration": {
+      "title": "TIALAO ADB Wireless Connect",
+      "properties": {
+        "tialaoAdb.adbPath": {
+          "type": "string",
+          "default": "adb",
+          "markdownDescription": "Chemin vers le binaire `adb`. Laisser `adb` pour utiliser celui du `PATH` ; l'extension cherche aussi automatiquement dans les emplacements standards du SDK Android.",
+          "scope": "machine-overridable"
+        },
+        "tialaoAdb.autoConnectOnStartup": {
+          "type": "boolean",
+          "default": false,
+          "description": "Tenter de reconnecter le dernier appareil associe a l'ouverture de la fenetre."
+        },
+        "tialaoAdb.discoveryTimeout": {
+          "type": "number",
+          "default": 120,
+          "minimum": 10,
+          "maximum": 600,
+          "description": "Timeout de decouverte mDNS, en secondes."
+        },
+        "tialaoAdb.showStatusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Afficher l'appareil connecte dans la barre d'etat."
+        },
+        "tialaoAdb.disableMdnsAutoConnect": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "Redemarrer le serveur adb avec `ADB_MDNS_AUTO_CONNECT` vide, pour empecher adb de se connecter tout seul aux appareils decouverts. **Attention** : le redemarrage du serveur coupe les sessions adb en cours (Gradle, Flutter, scrcpy)."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "build": "node esbuild.mjs --production",
+    "watch": "node esbuild.mjs --watch",
+    "package": "npm run build && vsce package --no-dependencies --out ../../tialao-adb-wireless-connect.vsix",
+    "vsce:ls": "vsce ls --no-dependencies"
+  },
+  "dependencies": {
+    "tialao-adb-wireless": "^0.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "@types/vscode": "~1.85.0",
+    "@vscode/vsce": "^3.9.2",
+    "esbuild": "^0.28.2"
+  }
+}
