@@ -303,6 +303,15 @@ Puis : *Namespaces* → créer l'espace de noms, qui doit être **exactement** l
 `package.json`. Le bandeau orange « This namespace is not verified » est **normal et non
 bloquant** — il ne retire que le badge de propriété.
 
+**Faire vérifier l'espace de noms** se demande par une *issue* sur `EclipseFdn/open-vsx.org`
+(gabarit `claim-namespace-ownership.yml`), et non depuis le profil Open VSX. Le gabarit exige
+**12 mois d'historique GitHub public** et impose de choisir une des quatre options selon que le
+nom est, ou non, un éditeur du Marketplace Microsoft. Ici c'est l'**option 2** — l'éditeur
+`tialao` existe bien sur le Marketplace mais n'y a aucune extension, faute de PAT — et sa
+validation passe par un accès lecteur temporaire accordé à l'ID administrateur
+`9f9ebf84-37d2-648b-bef8-8af4132d803a`. Les trois autres voies réclament un nom de domaine
+homonyme. Demande déposée : `EclipseFdn/open-vsx.org#12846`.
+
 **L'indexation d'Open VSX est asynchrone** : `ovsx publish` affiche
 `🚀 Published …` immédiatement, mais `GET /api/<ns>/<ext>` répond `Extension not found`
 pendant une trentaine de secondes. Ne pas conclure à un échec sur une seule interrogation.
