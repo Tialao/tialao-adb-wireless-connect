@@ -9,3 +9,6 @@ Thumbs.db
 
 # Dossier de travail temporaire, non versionne
 .scratch/
+
+# Brief initial du projet, personnel : non versionne
+prompt-extension-adb-wireless.md
