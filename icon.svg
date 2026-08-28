@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="TIALAO ADB Wireless Connect">
+
+  <!-- Fond opaque : les marketplaces refusent la transparence. -->
+  <rect x="0" y="0" width="256" height="256" fill="#1E1B4B"/>
+
+  <!--
+    Smartphone vu de face, trace en contour epais.
+    Un aplat blanc deviendrait une tache indistincte une fois reduit. Le trait est
+    a 22 parce qu'en dessous il passe sous le pixel a 16 px et ressort gris au lieu
+    de blanc. Aucun detail interieur : a cette taille il ne ferait que boucher la
+    silhouette.
+  -->
+  <rect x="36" y="100" width="84" height="120" rx="18" ry="18"
+        fill="none" stroke="#FFFFFF" stroke-width="22" stroke-linejoin="round"/>
+
+  <!--
+    Trois arcs concentriques rayonnant du coin superieur droit du telephone (120, 100).
+    Rayons 32 / 64 / 96 : 32 unites d'ecart pour 18 de trait. Le secteur est
+    volontairement resserre (44 degres) car c'est ce qui permet de pousser le rayon
+    exterieur a 96 sans toucher le bord haut — et donc d'ecarter assez les arcs pour
+    qu'ils restent distincts une fois reduits.
+  -->
+  <g fill="none" stroke="#10B981" stroke-width="18" stroke-linecap="round">
+    <path d="M 142.2 77.0 A 32 32 0 0 1 152.0 98.9"/>
+    <path d="M 164.5 54.0 A 64 64 0 0 1 184.0 97.8"/>
+    <path d="M 186.7 30.9 A 96 96 0 0 1 215.9 96.7"/>
+  </g>
+
+</svg>
