@@ -191,4 +191,19 @@ jobs:
             echo "::notice::OVSX_PAT absent — publication Open VSX ignorée."
             exit 0
           fi
-          npx ovsx publish tialao-adb-wireless-connect.vsix --pat "$OVSX_PAT"
+          # `gh run rerun` rejoue TOUTES les etapes, y compris celles qui avaient
+          # deja abouti. Republier une version deja en ligne fait sortir ovsx en
+          # erreur (« is already published ») alors que rien d'anormal ne s'est
+          # produit : le paquet voulu est bien publie. Ce cas precis, et lui seul,
+          # est donc traite comme un succes — le rerun sert justement a rattraper
+          # un autre job, comme la publication npm quand son secret manquait.
+          set +e
+          output="$(npx ovsx publish tialao-adb-wireless-connect.vsix --pat "$OVSX_PAT" 2>&1)"
+          status=$?
+          set -e
+          echo "$output"
+          if [ $status -ne 0 ] && printf '%s' "$output" | grep -q 'is already published'; then
+            echo "::notice::Version déjà présente sur Open VSX — rien à republier."
+            exit 0
+          fi
+          exit $status
