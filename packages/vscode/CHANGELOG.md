@@ -3,6 +3,18 @@
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
+## [0.2.3] — 2026-08-31
+
+Version de documentation : le code de l'extension est inchangé.
+
+### Corrigé
+
+- **Le README annonçait une installation depuis le Marketplace Visual Studio.** L'extension
+  n'y est pas publiée : elle ne l'est que sur **Open VSX**, le registre de Cursor, Windsurf,
+  VSCodium et Trae. Sous VS Code, qui n'interroge pas Open VSX, la recherche dans le panneau
+  Extensions ne donne rien — il faut passer par *Install from VSIX…*, avec exactement le même
+  paquet `universal`. Le README le dit maintenant en toutes lettres.
+
 ## [0.2.2] — 2026-08-31
 
 Version de documentation : le code de l'extension est inchangé.

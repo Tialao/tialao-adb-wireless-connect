@@ -64,17 +64,31 @@ Le **même** `.vsix` fonctionne sur **tous** les éditeurs de la famille VS Code
 Windsurf, VSCodium, Trae, Kiro, Positron. Il n'existe pas de paquet par éditeur ni par système
 d'exploitation : le paquet publié est `universal`.
 
-### 1. Depuis l'éditeur (le plus simple)
+### Où le paquet est publié aujourd'hui
 
-| Éditeur | Registre | Où chercher |
+| Registre | Publié ? | Ce qu'il dessert |
 | --- | --- | --- |
-| VS Code | Marketplace Visual Studio | **Extensions** → « TIALAO ADB Wireless Connect » |
-| Cursor, Windsurf, VSCodium, Trae | [Open VSX](https://open-vsx.org/extension/tialao/tialao-adb-wireless-connect) | **Extensions** → même recherche |
+| [Open VSX](https://open-vsx.org/extension/tialao/tialao-adb-wireless-connect) | **oui** | Cursor, Windsurf, VSCodium, Trae |
+| [npm](https://www.npmjs.com/package/tialao-adb-wireless) | **oui** | le CLI `tadb`, pour tout éditeur ou terminal |
+| Marketplace Visual Studio | **pas encore** | VS Code |
 
-> Certains éditeurs (Cursor, Windsurf) n'interrogent pas Open VSX directement mais un **miroir**
-> rafraîchi périodiquement : une version tout juste publiée peut n'y apparaître qu'après un
-> délai, voire pas du tout selon l'éditeur. Ce n'est pas un problème d'installation — prenez la
-> voie 2, qui installe exactement le même paquet.
+**Sous VS Code, l'extension ne se trouve donc pas dans le panneau Extensions** : passez par le
+`.vsix` (voie 2 ci-dessous), qui installe exactement le même paquet en trois clics.
+
+### 1. Depuis l'éditeur — Cursor, Windsurf, VSCodium, Trae
+
+Ces éditeurs s'approvisionnent sur
+[Open VSX](https://open-vsx.org/extension/tialao/tialao-adb-wireless-connect), où l'extension est
+publiée : panneau **Extensions** (`Ctrl+Shift+X`) → cherchez « TIALAO ADB Wireless Connect » →
+**Install**.
+
+> **VS Code n'est pas concerné par cette voie.** Il n'interroge que le Marketplace Visual Studio,
+> où l'extension n'est pas publiée : y publier exige un compte Azure DevOps, qui réclame une carte
+> bancaire même sur l'offre gratuite. Sous VS Code, prenez la voie 2.
+
+> Cursor et Windsurf n'interrogent pas Open VSX directement mais un **miroir** rafraîchi
+> périodiquement : une version tout juste publiée peut n'y apparaître qu'après un délai, voire pas
+> du tout selon l'éditeur. Là encore, la voie 2 installe exactement le même paquet.
 
 ### 2. Le `.vsix` par l'interface de l'éditeur — la voie qui ne rate jamais
 
@@ -103,11 +117,15 @@ codium   --install-extension tialao-adb-wireless-connect.vsix
 trae     --install-extension tialao-adb-wireless-connect.vsix
 ```
 
-Sans passer par un fichier, en tirant directement depuis le registre :
+Sans passer par un fichier, en tirant directement depuis le registre — **seulement sur les
+éditeurs branchés sur Open VSX** (Cursor, Windsurf, VSCodium, Trae) :
 
 ```bash
 cursor --install-extension tialao.tialao-adb-wireless-connect
 ```
+
+La même commande lancée avec `code` échoue : VS Code cherche l'identifiant sur le Marketplace
+Visual Studio, où l'extension n'est pas publiée. Sous VS Code, il faut un fichier `.vsix`.
 
 **Le piège** : ces commandes ne sont dans le `PATH` que si l'éditeur les y a ajoutées. Sous
 Windows, cela dépend d'une case cochée à l'installation ; sous macOS, il faut lancer une fois
@@ -182,7 +200,8 @@ tadb pair-qr
 | « Unable to read file », « Extension not found » | Chemin relatif résolu depuis un autre dossier | Donnez le chemin **absolu** du `.vsix`, ou placez-vous dans le dossier de téléchargement |
 | Le fichier téléchargé porte l'extension `.zip` | Certains navigateurs renomment les archives | Renommez-le en `.vsix` |
 | « is not compatible with VS Code *x.y* » | Éditeur antérieur à VS Code 1.85 | Mettez l'éditeur à jour |
-| L'extension ne se trouve pas dans le panneau Extensions | L'éditeur interroge un miroir d'Open VSX en retard | Voie 2 |
+| Introuvable dans le panneau Extensions de **VS Code** | Elle n'est publiée que sur Open VSX, que VS Code n'interroge pas | Voie 2 — le `.vsix` installe le même paquet |
+| Introuvable dans le panneau de **Cursor / Windsurf** | Ces éditeurs interrogent un miroir d'Open VSX en retard | Voie 2 |
 | `self signed certificate in certificate chain` | Un antivirus ou un proxy d'entreprise intercepte le TLS : l'éditeur ne peut plus joindre le registre | Voie 2 — le fichier `.vsix` téléchargé par le navigateur s'installe sans passer par le registre |
 | Installée, mais aucune commande « TIALAO ADB » | Fenêtre pas rechargée | *Developer: Reload Window*, puis palette → `TIALAO ADB` |
 
@@ -279,6 +298,11 @@ Il n'existe pas de format de plugin universel. Voici ce qui est **réellement** 
 
 VS Code, **Cursor**, **Windsurf**, **VSCodium**, **Trae**, **Kiro**, et tout autre fork de
 VS Code. Un seul artefact pour tous.
+
+> Nuance de **distribution**, pas de compatibilité : le paquet n'est aujourd'hui publié que sur
+> Open VSX. Cursor, Windsurf, VSCodium et Trae l'installent donc depuis leur panneau Extensions ;
+> VS Code, qui n'interroge que le Marketplace Visual Studio, exige le `.vsix` — qu'il fait
+> tourner exactement pareil.
 
 ### Via le CLI `tadb`
 
@@ -447,6 +471,13 @@ git tag v0.1.1 && git push --follow-tags
 ### Créer les trois jetons
 
 **`VSCE_PAT` — Marketplace Visual Studio** (pour VS Code)
+
+> **État actuel : ce jeton n'existe pas, et l'extension n'est pas publiée sur le Marketplace.**
+> Émettre un PAT Marketplace suppose une organisation Azure DevOps, et Azure exige une carte
+> bancaire pour en créer une — même sur l'offre gratuite. L'éditeur `tialao` y est bien créé,
+> mais sans jeton l'étape `vsce publish` de la release est **sautée**. Piège à connaître : un job
+> sauté apparaît quand même **en vert** dans l'onglet Actions ; seul le journal du job, ou l'API du
+> registre, dit si quelque chose a réellement été publié.
 
 1. Connectez-vous sur [dev.azure.com](https://dev.azure.com/) avec un compte Microsoft.
 2. En haut à droite : *User settings* → *Personal access tokens* → **New Token**.

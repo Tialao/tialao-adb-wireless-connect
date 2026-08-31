@@ -60,12 +60,16 @@ disent quoi faire plutôt que « command failed ».
 
 ## Installation
 
-### 1. Depuis un marketplace (le plus simple)
+### 1. Depuis un registre (le plus simple)
 
-- **VS Code** — [Marketplace Visual Studio](https://marketplace.visualstudio.com/) : cherchez
-  « TIALAO ADB Wireless Connect ».
-- **Cursor, Windsurf, VSCodium, Trae** — ces éditeurs utilisent
-  [Open VSX](https://open-vsx.org/) : même recherche.
+- **Cursor, Windsurf, VSCodium, Trae** — panneau **Extensions**, cherchez
+  « TIALAO ADB Wireless Connect » : ces éditeurs s'approvisionnent sur
+  [Open VSX](https://open-vsx.org/extension/tialao/tialao-adb-wireless-connect), où le paquet est
+  publié.
+- **Le CLI `tadb` seul** — `npm install -g tialao-adb-wireless`, depuis
+  [npm](https://www.npmjs.com/package/tialao-adb-wireless). N'installe **pas** l'extension.
+- **VS Code** — pas encore : il n'interroge que le Marketplace Visual Studio, où l'extension n'est
+  pas publiée. Passez par le script (voie 2) ou le `.vsix` (voie 3), qui installent le même paquet.
 
 ### 2. Script d'installation (installe sur tous les éditeurs détectés)
 
@@ -365,6 +369,11 @@ git tag v0.1.1 && git push --follow-tags
 ### Créer les trois jetons
 
 **`VSCE_PAT` — Marketplace Visual Studio** (pour VS Code)
+
+> **État actuel : ce jeton n'existe pas, et l'extension n'est pas publiée sur le Marketplace.**
+> Émettre un PAT Marketplace suppose une organisation Azure DevOps, et Azure exige une carte
+> bancaire pour en créer une. Sans jeton, l'étape `vsce publish` de la release est **sautée** —
+> et un job sauté apparaît quand même en vert dans l'onglet Actions.
 
 1. Connectez-vous sur [dev.azure.com](https://dev.azure.com/) avec un compte Microsoft.
 2. En haut à droite : *User settings* → *Personal access tokens* → **New Token**.

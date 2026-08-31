@@ -3,6 +3,28 @@
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
+## [0.2.3] — 2026-08-31
+
+Version de documentation : le code de l'extension est inchangé.
+
+### Corrigé
+
+- **La documentation annonçait une disponibilité sur le Marketplace Visual Studio, où
+  l'extension n'est pas publiée.** Elle ne l'est aujourd'hui que sur **Open VSX** (pour
+  Cursor, Windsurf, VSCodium, Trae) et **npm** (pour le CLI `tadb`) — publier sur le
+  Marketplace suppose un compte Azure DevOps, qui réclame une carte bancaire même sur
+  l'offre gratuite. Un utilisateur de VS Code cherchait donc l'extension dans un panneau
+  Extensions où elle ne pouvait pas apparaître, VS Code n'interrogeant pas Open VSX.
+- Les trois README indiquent maintenant, dès la section *Installation*, **quel registre
+  sert quel éditeur**, et orientent VS Code vers le `.vsix` — même paquet `universal`,
+  même comportement, trois clics.
+- `code --install-extension tialao.tialao-adb-wireless-connect` est signalé comme voué à
+  l'échec : tirer l'extension par son identifiant ne marche que sur les éditeurs branchés
+  sur Open VSX.
+- Le tableau de dépannage distingue les deux causes d'une extension introuvable dans le
+  panneau : **VS Code** (registre sans le paquet) et **Cursor / Windsurf** (miroir d'Open
+  VSX en retard).
+
 ## [0.2.2] — 2026-08-31
 
 Version de documentation : le code de l'extension est inchangé.

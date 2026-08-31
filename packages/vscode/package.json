@@ -2,7 +2,7 @@
   "name": "tialao-adb-wireless-connect",
   "displayName": "TIALAO ADB Wireless Connect",
   "description": "Connecte un smartphone Android en ADB sans fil : QR code ou code d'association, sans passer par Android Studio.",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "license": "MIT",
   "publisher": "tialao",
   "private": true,

@@ -24,9 +24,13 @@ Toutes les commandes sont dans la palette (`Ctrl+Shift+P`) sous le préfixe **TI
 
 ## Installation
 
-**Depuis l'éditeur** — panneau **Extensions** (`Ctrl+Shift+X`), cherchez
-« TIALAO ADB Wireless Connect », puis **Install**. Le même paquet sert VS Code (Marketplace
-Visual Studio) et Cursor, Windsurf, VSCodium, Trae (Open VSX).
+**Depuis l'éditeur** — sur **Cursor, Windsurf, VSCodium et Trae**, qui s'approvisionnent sur
+[Open VSX](https://open-vsx.org/extension/tialao/tialao-adb-wireless-connect) : panneau
+**Extensions** (`Ctrl+Shift+X`), cherchez « TIALAO ADB Wireless Connect », puis **Install**.
+
+**Sous VS Code, cette recherche ne donne rien.** VS Code n'interroge que le Marketplace Visual
+Studio, où l'extension n'est pas encore publiée. Prenez la voie du `.vsix` ci-dessous : c'est le
+même paquet `universal`, il tourne à l'identique sous VS Code, et il s'installe en trois clics.
 
 **Depuis le `.vsix`** — si votre éditeur ne trouve pas l'extension dans son panneau, ou si le
 bouton **Download** de cette page vous a laissé un fichier sur les bras :
