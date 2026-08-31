@@ -60,17 +60,65 @@ disent quoi faire plutôt que « command failed ».
 
 ## Installation
 
-### 1. Depuis un marketplace (le plus simple)
+Le **même** `.vsix` fonctionne sur **tous** les éditeurs de la famille VS Code — VS Code, Cursor,
+Windsurf, VSCodium, Trae, Kiro, Positron. Il n'existe pas de paquet par éditeur ni par système
+d'exploitation : le paquet publié est `universal`.
 
-- **VS Code** — [Marketplace Visual Studio](https://marketplace.visualstudio.com/) : cherchez
-  « TIALAO ADB Wireless Connect ».
-- **Cursor, Windsurf, VSCodium, Trae** — ces éditeurs utilisent
-  [Open VSX](https://open-vsx.org/) : même recherche.
+### 1. Depuis l'éditeur (le plus simple)
 
-### 2. Script d'installation (installe sur tous les éditeurs détectés)
+| Éditeur | Registre | Où chercher |
+| --- | --- | --- |
+| VS Code | Marketplace Visual Studio | **Extensions** → « TIALAO ADB Wireless Connect » |
+| Cursor, Windsurf, VSCodium, Trae | [Open VSX](https://open-vsx.org/extension/tialao/tialao-adb-wireless-connect) | **Extensions** → même recherche |
+
+> Certains éditeurs (Cursor, Windsurf) n'interrogent pas Open VSX directement mais un **miroir**
+> rafraîchi périodiquement : une version tout juste publiée peut n'y apparaître qu'après un
+> délai, voire pas du tout selon l'éditeur. Ce n'est pas un problème d'installation — prenez la
+> voie 2, qui installe exactement le même paquet.
+
+### 2. Le `.vsix` par l'interface de l'éditeur — la voie qui ne rate jamais
+
+1. Téléchargez le `.vsix` :
+   - depuis [Open VSX](https://open-vsx.org/extension/tialao/tialao-adb-wireless-connect),
+     bouton **Download** ;
+   - ou depuis la
+     [page des versions GitHub](https://github.com/Tialao/tialao-adb-wireless-connect/releases/latest).
+2. Dans l'éditeur : **Extensions** (`Ctrl+Shift+X`) → menu **`...`** en haut du panneau →
+   **Install from VSIX…** → sélectionnez le fichier téléchargé.
+3. Rechargez la fenêtre si l'éditeur le propose.
+
+Cette voie ne dépend ni du `PATH`, ni du nom de la commande, ni d'un terminal. C'est celle à
+donner à quelqu'un chez qui « la commande ne passe pas ».
+
+### 3. En ligne de commande
+
+Depuis le dossier où se trouve le `.vsix` téléchargé — **le nom de la commande change selon
+l'éditeur**, le fichier non :
+
+```bash
+code     --install-extension tialao-adb-wireless-connect.vsix
+cursor   --install-extension tialao-adb-wireless-connect.vsix
+windsurf --install-extension tialao-adb-wireless-connect.vsix
+codium   --install-extension tialao-adb-wireless-connect.vsix
+trae     --install-extension tialao-adb-wireless-connect.vsix
+```
+
+Sans passer par un fichier, en tirant directement depuis le registre :
+
+```bash
+cursor --install-extension tialao.tialao-adb-wireless-connect
+```
+
+**Le piège** : ces commandes ne sont dans le `PATH` que si l'éditeur les y a ajoutées. Sous
+Windows, cela dépend d'une case cochée à l'installation ; sous macOS, il faut lancer une fois
+**Shell Command: Install 'code' command in PATH** depuis la palette. Si le terminal répond
+`command not found` ou « n'est pas reconnu », l'éditeur n'est pas en cause : utilisez la voie 2.
+
+### 4. Script d'installation (installe sur tous les éditeurs détectés)
 
 Le script télécharge le `.vsix` de la dernière version publiée, détecte les éditeurs présents sur
-la machine et l'installe sur chacun, en ignorant silencieusement les absents.
+la machine et l'installe sur chacun, en ignorant silencieusement les absents. Il cherche les
+éditeurs **au-delà du `PATH`**, à leurs emplacements d'installation standards.
 
 ```bash
 # macOS / Linux
@@ -82,27 +130,55 @@ curl -fsSL https://raw.githubusercontent.com/Tialao/tialao-adb-wireless-connect/
 irm https://raw.githubusercontent.com/Tialao/tialao-adb-wireless-connect/main/scripts/install.ps1 | iex
 ```
 
-### 3. `.vsix` manuel
-
-Téléchargez le `.vsix` depuis la
-[page des versions](https://github.com/Tialao/tialao-adb-wireless-connect/releases), puis :
+Pour installer un `.vsix` déjà téléchargé plutôt que la dernière version en ligne :
 
 ```bash
-code     --install-extension tialao-adb-wireless-connect.vsix
-cursor   --install-extension tialao-adb-wireless-connect.vsix
-windsurf --install-extension tialao-adb-wireless-connect.vsix
-codium   --install-extension tialao-adb-wireless-connect.vsix
-trae     --install-extension tialao-adb-wireless-connect.vsix
+./install.sh --vsix ./tialao-adb-wireless-connect.vsix
 ```
 
-Le **même** `.vsix` fonctionne sur tous ces éditeurs ; seul le nom de la commande change.
+```powershell
+.\install.ps1 -VsixPath .\tialao-adb-wireless-connect.vsix
+```
 
-### 4. CLI seul (sans éditeur)
+### 5. Depuis les sources GitHub (compiler soi-même)
+
+Utile pour installer un correctif avant sa publication, ou pour vérifier soi-même ce que contient
+le paquet. Requiert **Node.js ≥ 22.18** (le paquet produit, lui, tourne à partir de Node 20.11).
+
+```bash
+git clone https://github.com/Tialao/tialao-adb-wireless-connect.git
+cd tialao-adb-wireless-connect
+npm install
+npm run package       # produit ./tialao-adb-wireless-connect.vsix
+```
+
+Puis installez le `.vsix` obtenu, par la voie 2 (interface) ou la voie 3 (ligne de commande) :
+
+```bash
+code --install-extension ./tialao-adb-wireless-connect.vsix
+```
+
+Pour seulement essayer sans installer : ouvrez le dépôt dans VS Code et lancez **Run Extension**
+(`F5`), qui démarre une fenêtre d'hôte de développement.
+
+### 6. CLI seul (sans éditeur)
 
 ```bash
 npm install -g tialao-adb-wireless
 tadb pair-qr
 ```
+
+### Si l'installation échoue
+
+| Symptôme | Cause | Solution |
+| --- | --- | --- |
+| `code : command not found`, « Le terme « code » n'est pas reconnu » | Le CLI de l'éditeur n'est pas dans le `PATH` | Voie 2 (interface), ou macOS : palette → *Shell Command: Install 'code' command in PATH* |
+| La commande `code` n'existe pas mais l'éditeur est installé | Sur Cursor / Windsurf, la commande s'appelle `cursor` / `windsurf` | Utilisez le nom correspondant à votre éditeur |
+| « Unable to read file », « Extension not found » | Chemin relatif résolu depuis un autre dossier | Donnez le chemin **absolu** du `.vsix`, ou placez-vous dans le dossier de téléchargement |
+| Le fichier téléchargé porte l'extension `.zip` | Certains navigateurs renomment les archives | Renommez-le en `.vsix` |
+| « is not compatible with VS Code *x.y* » | Éditeur antérieur à VS Code 1.85 | Mettez l'éditeur à jour |
+| L'extension ne se trouve pas dans le panneau Extensions | L'éditeur interroge un miroir d'Open VSX en retard | Voie 2 |
+| Installée, mais aucune commande « TIALAO ADB » | Fenêtre pas rechargée | *Developer: Reload Window*, puis palette → `TIALAO ADB` |
 
 ## Utilisation — extension VS Code
 

@@ -18,8 +18,17 @@ VSIX_PATH=""
 TEMP_FILE=""
 
 # Le meme .vsix fonctionne sur tous ces editeurs : seule la commande change.
+#
+# La detection ne se limite pas au PATH. Sous macOS, le raccourci `code` n'existe que si
+# l'utilisateur a lance << Shell Command: Install 'code' command in PATH >> ; sans cela,
+# l'editeur est bien installe mais la commande est introuvable. Chaque editeur est donc
+# aussi cherche dans /Applications (macOS) et aux emplacements usuels (Linux).
+#
+# Les listes de repertoires sont separees par `|` : les noms contiennent des espaces.
 EDITOR_NAMES=("VS Code" "VS Code Insiders" "Cursor" "Windsurf" "VSCodium" "Trae" "Kiro" "Positron")
 EDITOR_COMMANDS=("code" "code-insiders" "cursor" "windsurf" "codium" "trae" "kiro" "positron")
+EDITOR_APPS=("Visual Studio Code" "Visual Studio Code - Insiders" "Cursor" "Windsurf" "VSCodium" "Trae" "Kiro" "Positron")
+EDITOR_DIRS=("code|vscode" "code-insiders|vscode-insiders" "cursor" "windsurf" "codium|vscodium" "trae" "kiro" "positron")
 
 if [ -t 1 ] && [ -z "${NO_COLOR:-}" ]; then
   C_STEP=$'\033[36m'; C_OK=$'\033[32m'; C_SKIP=$'\033[90m'; C_ERR=$'\033[31m'; C_WARN=$'\033[33m'; C_OFF=$'\033[0m'
@@ -57,6 +66,50 @@ fetch() {
   fi
 }
 
+# Resout le lanceur d'un editeur : d'abord le PATH, puis les emplacements standards.
+# Ecrit le chemin trouve sur stdout, ou rien du tout.
+resolve_cli() {
+  cli_command="$1"; cli_apps="$2"; cli_dirs="$3"
+
+  if command -v "$cli_command" >/dev/null 2>&1; then
+    command -v "$cli_command"
+    return 0
+  fi
+
+  # macOS : le lanceur vit dans le bundle .app.
+  old_ifs="$IFS"; IFS='|'
+  # shellcheck disable=SC2086
+  set -- $cli_apps
+  IFS="$old_ifs"
+  for app in "$@"; do
+    for base in "/Applications" "$HOME/Applications"; do
+      candidate="$base/$app.app/Contents/Resources/app/bin/$cli_command"
+      if [ -x "$candidate" ]; then printf '%s\n' "$candidate"; return 0; fi
+    done
+  done
+
+  # Linux : paquets systeme, archives dans /opt, snap, installations utilisateur.
+  old_ifs="$IFS"; IFS='|'
+  # shellcheck disable=SC2086
+  set -- $cli_dirs
+  IFS="$old_ifs"
+  for dir in "$@"; do
+    for base in "/usr/share" "/opt" "$HOME/.local/share"; do
+      for suffix in "bin" "resources/app/bin"; do
+        candidate="$base/$dir/$suffix/$cli_command"
+        if [ -x "$candidate" ]; then printf '%s\n' "$candidate"; return 0; fi
+      done
+    done
+  done
+
+  for base in "/usr/local/bin" "/snap/bin" "$HOME/.local/bin"; do
+    candidate="$base/$cli_command"
+    if [ -x "$candidate" ]; then printf '%s\n' "$candidate"; return 0; fi
+  done
+
+  return 1
+}
+
 # --- Recuperation du .vsix ---------------------------------------------------------------
 
 if [ -n "$VSIX_PATH" ]; then
@@ -91,6 +144,13 @@ else
   ok "$(( $(wc -c < "$VSIX") / 1024 )) Ko telecharges"
 fi
 
+# `code --install-extension` refuse un chemin relatif interprete depuis un autre repertoire :
+# on lui passe toujours un chemin absolu.
+case "$VSIX" in
+  /*) ;;
+   *) VSIX="$(cd "$(dirname "$VSIX")" && pwd)/$(basename "$VSIX")" ;;
+esac
+
 # --- Installation ------------------------------------------------------------------------
 
 step "Detection des editeurs installes"
@@ -102,14 +162,16 @@ i=0
 while [ $i -lt ${#EDITOR_COMMANDS[@]} ]; do
   name="${EDITOR_NAMES[$i]}"
   cmd="${EDITOR_COMMANDS[$i]}"
+  apps="${EDITOR_APPS[$i]}"
+  dirs="${EDITOR_DIRS[$i]}"
   i=$((i + 1))
 
-  if ! command -v "$cmd" >/dev/null 2>&1; then
+  if ! cli="$(resolve_cli "$cmd" "$apps" "$dirs")"; then
     skip "$name (absent)"
     continue
   fi
 
-  if output="$("$cmd" --install-extension "$VSIX" --force 2>&1)"; then
+  if output="$("$cli" --install-extension "$VSIX" --force 2>&1)"; then
     ok "$name"
     INSTALLED="$INSTALLED $name,"
   else
@@ -127,11 +189,15 @@ if [ -n "$INSTALLED" ]; then
   printf '%s  Installe sur :%s%s\n' "$C_OK" "${INSTALLED%,}" "$C_OFF"
   echo
   echo "  Redemarrez votre editeur, puis lancez la commande"
-  echo "  « TIALAO ADB: Pair device with QR code » depuis la palette."
-else
+  echo "  << TIALAO ADB: Pair device with QR code >> depuis la palette."
+elif [ -z "$FAILED" ]; then
   printf '%s  Aucun editeur de la famille VS Code n%s a ete trouve.%s\n' "$C_WARN" "'" "$C_OFF"
   echo
-  echo "  Vous pouvez tout de meme utiliser le CLI, qui fonctionne partout :"
+  echo "  Si votre editeur est bien installe, passez par son interface :"
+  echo "    Extensions -> menu ... -> Install from VSIX..."
+  echo "  Cette voie ne depend ni du PATH ni du nom de la commande."
+  echo
+  echo "  Vous pouvez aussi utiliser le CLI, qui fonctionne partout :"
   echo "    npm install -g tialao-adb-wireless"
   echo "    tadb pair-qr"
 fi

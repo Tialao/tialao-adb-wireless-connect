@@ -3,6 +3,35 @@
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
+## [0.2.1] — 2026-08-31
+
+Version de documentation et d'outillage d'installation : le code de l'extension est
+inchangé.
+
+### Corrigé
+
+- **Les scripts d'installation ne trouvaient aucun éditeur là où il y en avait.** Ils ne
+  cherchaient les lanceurs que dans le `PATH` ; or `code` n'y est ajouté que si la case
+  correspondante a été cochée à l'installation (Windows) ou si *Shell Command: Install
+  'code' command in PATH* a été lancé une fois (macOS). Les deux scripts sondent
+  désormais aussi les emplacements d'installation standards : `%LOCALAPPDATA%\Programs`
+  et `Program Files` sous Windows, `/Applications` sous macOS, `/usr/share`, `/opt` et
+  `/snap/bin` sous Linux.
+- `scripts/install.ps1` commençait par un BOM UTF-8, ce qui pouvait faire échouer
+  l'invocation recommandée `irm … | iex` sur une erreur d'analyse.
+- `scripts/install.sh` convertit maintenant le chemin du `.vsix` en chemin absolu :
+  `--install-extension` avec un chemin relatif échouait selon le répertoire courant.
+
+### Ajouté
+
+- **Section Installation sur la page de l'extension** (Marketplace / Open VSX), qui n'en
+  comportait aucune : la voie *Extensions → `...` → Install from VSIX…*, qui ne dépend ni
+  du `PATH` ni d'un terminal, y est décrite en premier.
+- README : installation **depuis les sources GitHub** (`git clone` → `npm run package`),
+  installation directe depuis le registre
+  (`cursor --install-extension tialao.tialao-adb-wireless-connect`), et un tableau
+  *Si l'installation échoue* couvrant les messages d'erreur réellement rencontrés.
+
 ## [0.2.0] — 2026-08-28
 
 ### Ajouté

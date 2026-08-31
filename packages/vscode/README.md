@@ -22,6 +22,36 @@ C'est le « Wireless debugging / Pair device » d'Android Studio, directement da
 
 Toutes les commandes sont dans la palette (`Ctrl+Shift+P`) sous le préfixe **TIALAO ADB:**.
 
+## Installation
+
+**Depuis l'éditeur** — panneau **Extensions** (`Ctrl+Shift+X`), cherchez
+« TIALAO ADB Wireless Connect », puis **Install**. Le même paquet sert VS Code (Marketplace
+Visual Studio) et Cursor, Windsurf, VSCodium, Trae (Open VSX).
+
+**Depuis le `.vsix`** — si votre éditeur ne trouve pas l'extension dans son panneau, ou si le
+bouton **Download** de cette page vous a laissé un fichier sur les bras :
+
+1. **Extensions** (`Ctrl+Shift+X`) → menu **`...`** en haut du panneau → **Install from VSIX…**
+2. Sélectionnez le fichier `.vsix` téléchargé.
+3. Rechargez la fenêtre si l'éditeur le propose.
+
+Cette voie ne dépend ni du `PATH` ni d'un terminal — c'est la plus fiable.
+
+**En ligne de commande**, si vous préférez — le nom de la commande change selon l'éditeur, le
+fichier non :
+
+```bash
+code   --install-extension tialao-adb-wireless-connect.vsix
+cursor --install-extension tialao-adb-wireless-connect.vsix
+```
+
+Si le terminal répond `command not found` ou « n'est pas reconnu », le CLI de votre éditeur
+n'est pas dans le `PATH` : ce n'est pas un problème d'extension, reprenez la voie **Install from
+VSIX…** ci-dessus. Le
+[README du projet](https://github.com/Tialao/tialao-adb-wireless-connect#installation) détaille
+toutes les voies, dont l'installation depuis les sources et un script qui installe sur tous les
+éditeurs détectés.
+
 ## Prérequis
 
 - Les **platform-tools Android** (`adb`). L'extension cherche automatiquement le binaire dans les

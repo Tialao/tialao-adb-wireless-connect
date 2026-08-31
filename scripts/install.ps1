@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Installe TIALAO ADB Wireless Connect sur tous les editeurs detectes.
 
@@ -6,6 +6,11 @@
     Telecharge le .vsix de la derniere version publiee sur GitHub, detecte les editeurs
     de la famille VS Code presents sur la machine, et l'installe sur chacun. Les editeurs
     absents sont ignores silencieusement.
+
+    La detection ne se limite PAS au PATH : sous Windows, le raccourci `code` n'y est
+    ajoute que si l'utilisateur a coche l'option correspondante a l'installation, ce qui
+    est rarement le cas. Chaque editeur est donc aussi cherche a ses emplacements
+    d'installation standards.
 
 .EXAMPLE
     irm https://raw.githubusercontent.com/Tialao/tialao-adb-wireless-connect/main/scripts/install.ps1 | iex
@@ -26,22 +31,53 @@ Set-StrictMode -Version Latest
 
 $Repo = 'Tialao/tialao-adb-wireless-connect'
 
-# Nom affiche -> commande CLI. Le meme .vsix fonctionne sur tous.
-$Editors = [ordered]@{
-    'VS Code'          = 'code'
-    'VS Code Insiders' = 'code-insiders'
-    'Cursor'           = 'cursor'
-    'Windsurf'         = 'windsurf'
-    'VSCodium'         = 'codium'
-    'Trae'             = 'trae'
-    'Kiro'             = 'kiro'
-    'Positron'         = 'positron'
-}
+$programFiles = ${env:ProgramFiles}
+$programFilesX86 = ${env:ProgramFiles(x86)}
+$localPrograms = Join-Path $env:LOCALAPPDATA 'Programs'
+
+# Nom affiche, commande CLI, et emplacements standards a sonder quand la commande
+# n'est pas dans le PATH. Le meme .vsix fonctionne sur tous ces editeurs.
+$Editors = @(
+    @{ Name = 'VS Code'; Command = 'code'; Dirs = @('Microsoft VS Code') }
+    @{ Name = 'VS Code Insiders'; Command = 'code-insiders'; Dirs = @('Microsoft VS Code Insiders') }
+    @{ Name = 'Cursor'; Command = 'cursor'; Dirs = @('cursor', 'Cursor') }
+    @{ Name = 'Windsurf'; Command = 'windsurf'; Dirs = @('Windsurf') }
+    @{ Name = 'VSCodium'; Command = 'codium'; Dirs = @('VSCodium') }
+    @{ Name = 'Trae'; Command = 'trae'; Dirs = @('Trae') }
+    @{ Name = 'Kiro'; Command = 'kiro'; Dirs = @('Kiro') }
+    @{ Name = 'Positron'; Command = 'positron'; Dirs = @('Positron') }
+)
 
 function Write-Step { param([string]$Message) Write-Host "==> $Message" -ForegroundColor Cyan }
 function Write-Ok { param([string]$Message) Write-Host "  [ok] $Message" -ForegroundColor Green }
 function Write-Skip { param([string]$Message) Write-Host "  [--] $Message" -ForegroundColor DarkGray }
 function Write-Fail { param([string]$Message) Write-Host "  [!!] $Message" -ForegroundColor Red }
+
+# Resout le lanceur d'un editeur : d'abord le PATH, puis les emplacements standards.
+# Deux dispositions coexistent : `<racine>\bin\<cmd>.cmd` (VS Code, Windsurf, Trae...)
+# et `<racine>\resources\app\bin\<cmd>.cmd` (Cursor).
+function Resolve-EditorCli {
+    param([string]$Command, [string[]]$Dirs)
+
+    $onPath = Get-Command $Command -CommandType Application -ErrorAction SilentlyContinue |
+        Select-Object -First 1
+    if ($onPath) { return $onPath.Source }
+
+    $roots = @($localPrograms, $programFiles, $programFilesX86) | Where-Object { $_ }
+
+    foreach ($root in $roots) {
+        foreach ($dir in $Dirs) {
+            foreach ($suffix in @('bin', 'resources\app\bin')) {
+                foreach ($extension in @('.cmd', '.exe', '')) {
+                    $candidate = Join-Path $root (Join-Path $dir (Join-Path $suffix "$Command$extension"))
+                    if (Test-Path -LiteralPath $candidate -PathType Leaf) { return $candidate }
+                }
+            }
+        }
+    }
+
+    return $null
+}
 
 function Get-LatestVsixUrl {
     $url = if ($Version -eq 'latest') {
@@ -60,7 +96,7 @@ function Get-LatestVsixUrl {
     $asset = $release.assets | Where-Object { $_.name -like '*.vsix' } | Select-Object -First 1
     if (-not $asset) { throw "Aucun fichier .vsix dans la release $($release.tag_name)." }
 
-    Write-Ok "Version $($release.tag_name) — $($asset.name)"
+    Write-Ok "Version $($release.tag_name) - $($asset.name)"
     return $asset.browser_download_url
 }
 
@@ -88,12 +124,11 @@ $installed = @()
 $failed = @()
 $absent = @()
 
-foreach ($entry in $Editors.GetEnumerator()) {
-    $name = $entry.Key
-    $command = $entry.Value
+foreach ($editor in $Editors) {
+    $name = $editor.Name
+    $cli = Resolve-EditorCli -Command $editor.Command -Dirs $editor.Dirs
 
-    $resolved = Get-Command $command -ErrorAction SilentlyContinue
-    if (-not $resolved) {
+    if (-not $cli) {
         $absent += $name
         continue
     }
@@ -105,7 +140,7 @@ foreach ($entry in $Editors.GetEnumerator()) {
     $previousPreference = $ErrorActionPreference
     $ErrorActionPreference = 'Continue'
     try {
-        $output = (& $command --install-extension $vsix --force 2>&1 | Out-String).Trim()
+        $output = (& $cli --install-extension $vsix --force 2>&1 | Out-String).Trim()
         $exitCode = $LASTEXITCODE
     } catch {
         $output = $_.Exception.Message
@@ -136,13 +171,17 @@ if ($installed.Count -gt 0) {
     Write-Host "  Installe sur : $($installed -join ', ')" -ForegroundColor Green
     Write-Host ''
     Write-Host '  Redemarrez votre editeur, puis lancez la commande'
-    Write-Host '  « TIALAO ADB: Pair device with QR code » depuis la palette.'
+    Write-Host '  << TIALAO ADB: Pair device with QR code >> depuis la palette.'
 } elseif ($failed.Count -gt 0) {
     Write-Host "  Aucune installation n'a abouti." -ForegroundColor Yellow
 } else {
     Write-Host "  Aucun editeur de la famille VS Code n'a ete trouve." -ForegroundColor Yellow
     Write-Host ''
-    Write-Host '  Vous pouvez tout de meme utiliser le CLI, qui fonctionne partout :'
+    Write-Host '  Si votre editeur est bien installe, passez par son interface :'
+    Write-Host '    Extensions -> menu ... -> Install from VSIX...'
+    Write-Host '  Cette voie ne depend ni du PATH ni du nom de la commande.'
+    Write-Host ''
+    Write-Host '  Vous pouvez aussi utiliser le CLI, qui fonctionne partout :'
     Write-Host '    npm install -g tialao-adb-wireless'
     Write-Host '    tadb pair-qr'
 }

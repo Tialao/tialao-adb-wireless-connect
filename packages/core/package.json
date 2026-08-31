@@ -1,6 +1,6 @@
 {
   "name": "tialao-adb-wireless",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Coeur autonome + CLI tadb : connexion ADB sans fil (QR code / code d'association), sans Android Studio",
   "license": "MIT",
   "author": "TIALAO",
