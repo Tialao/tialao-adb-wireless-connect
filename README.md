@@ -178,6 +178,7 @@ tadb pair-qr
 | Le fichier téléchargé porte l'extension `.zip` | Certains navigateurs renomment les archives | Renommez-le en `.vsix` |
 | « is not compatible with VS Code *x.y* » | Éditeur antérieur à VS Code 1.85 | Mettez l'éditeur à jour |
 | L'extension ne se trouve pas dans le panneau Extensions | L'éditeur interroge un miroir d'Open VSX en retard | Voie 2 |
+| `self signed certificate in certificate chain` | Un antivirus ou un proxy d'entreprise intercepte le TLS : l'éditeur ne peut plus joindre le registre | Voie 2 — le fichier `.vsix` téléchargé par le navigateur s'installe sans passer par le registre |
 | Installée, mais aucune commande « TIALAO ADB » | Fenêtre pas rechargée | *Developer: Reload Window*, puis palette → `TIALAO ADB` |
 
 ## Utilisation — extension VS Code
