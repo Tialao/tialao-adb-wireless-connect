@@ -361,10 +361,21 @@ La publication est déclenchée par un tag `v*` et gérée par
 la présence de son secret : sans le secret, l'étape est simplement sautée.
 
 ```bash
-npm version 0.1.1 --workspaces --no-git-tag-version
+npm version 0.1.1 --workspaces --include-workspace-root --no-git-tag-version
 git commit -am "chore: version 0.1.1"
-git tag v0.1.1 && git push --follow-tags
+git tag v0.1.1
+git push && git push origin v0.1.1
 ```
+
+Deux pièges, tous deux silencieux :
+
+- **`--include-workspace-root` est indispensable.** Sans lui, `npm version --workspaces` bump les
+  paquets mais laisse le `package.json` de la racine sur l'ancienne version.
+- **Le tag doit être poussé explicitement.** `git push --follow-tags` ne pousse que les tags
+  **annotés** ; `git tag v0.1.1` en crée un **léger**, qui reste donc sur la machine. Le push
+  réussit, la branche part, et rien ne se publie — aucune release n'étant déclenchée, il n'y a
+  même pas de job rouge pour le signaler. Utilisez `git push origin v0.1.1`, ou créez un tag
+  annoté avec `git tag -a`.
 
 ### Créer les trois jetons
 

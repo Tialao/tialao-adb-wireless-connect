@@ -290,6 +290,13 @@ esbuild consomme le **`dist` du cœur, pas son `src`** : le typecheck de l'exten
 contre la surface réellement publiée (`exports` + `.d.ts`). L'ordre de build est imposé :
 `core:tsc → vscode:typecheck → vscode:esbuild → vsce package`.
 
+**Deux pièges silencieux au moment de taguer une release.** `npm version --workspaces` ne
+touche pas au `package.json` de la **racine** : il faut `--include-workspace-root`, sinon la
+racine reste sur l'ancienne version. Et `git push --follow-tags` ne pousse que les tags
+**annotés** — un `git tag vX.Y.Z` nu crée un tag **léger**, qui ne part jamais : la branche est
+poussée, aucune release n'est déclenchée, et comme il n'y a pas de job, il n'y a pas non plus de
+rouge dans l'onglet Actions pour le signaler. → `git push origin vX.Y.Z`, ou `git tag -a`.
+
 ## Marketplace VS Code ≠ Open VSX
 
 Deux registres distincts, et il faut publier sur **les deux** pour une installation en un clic
