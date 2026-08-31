@@ -163,6 +163,11 @@ Pour seulement essayer sans installer : ouvrez le dépôt dans VS Code et lancez
 
 ### 6. CLI seul (sans éditeur)
 
+> **Cette voie n’installe pas l’extension.** Elle installe la commande `tadb` dans le
+> terminal, et rien ne changera dans le panneau Extensions de votre éditeur. C’est le bon
+> choix pour Android Studio, JetBrains, Zed, Neovim ou un simple terminal ; pour voir
+> l’extension dans un éditeur de la famille VS Code, prenez la voie 1 ou 2.
+
 ```bash
 npm install -g tialao-adb-wireless
 tadb pair-qr

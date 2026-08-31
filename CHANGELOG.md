@@ -3,6 +3,21 @@
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
+## [0.2.2] — 2026-08-31
+
+Version de documentation : le code de l'extension est inchangé.
+
+### Corrigé
+
+- **Le paquet npm `tialao-adb-wireless` était pris pour l'extension.** Un utilisateur a
+  lancé `npm install -g tialao-adb-wireless`, puis cherché l'extension dans son panneau
+  Extensions — où elle n'apparaîtra jamais : ce paquet installe la commande `tadb` dans
+  le terminal, rien d'autre. Les deux README le disent maintenant explicitement, à
+  l'endroit exact où le paquet npm est proposé.
+- La publication sur Open VSX ne fait plus échouer la release quand la version est déjà
+  en ligne : `gh run rerun` rejoue toutes les étapes, y compris celles qui avaient déjà
+  abouti, et c'est la manœuvre normale pour rattraper un job sauté faute de secret.
+
 ## [0.2.1] — 2026-08-31
 
 Version de documentation et d'outillage d'installation : le code de l'extension est

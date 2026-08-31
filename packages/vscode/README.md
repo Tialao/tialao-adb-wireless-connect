@@ -106,6 +106,10 @@ tadb pair-qr
 
 Le CLI dispose aussi d'un mode `--json` pour être piloté par un script.
 
+> **Attention : ce paquet npm n'installe pas l'extension.** Il pose la commande `tadb`
+> dans le terminal, et le panneau Extensions de votre éditeur restera inchangé. Pour
+> obtenir l'extension elle-même, reprenez la section **Installation** ci-dessus.
+
 ## Vie privée et sécurité
 
 Aucune télémétrie, aucune requête réseau sortante. Le QR code est généré localement, et toutes les
