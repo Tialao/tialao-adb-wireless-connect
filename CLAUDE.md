@@ -243,6 +243,29 @@ l'appareil : `type(1) action(1) keycode(4) repeat(4) metaState(4)`, soit 14 octe
 (`adb-<serial>-XXXXXX._adb-tls-connect._tcp`) et non en `ip:port`. `push` et `forward`
 fonctionnent avec les deux formes — vérifié.
 
+## Installation chez l'utilisateur — les deux échecs réels
+
+**Le CLI de l'éditeur n'est presque jamais dans le `PATH`.** Sous Windows, `code` n'y est ajouté
+que si la case correspondante a été cochée à l'installation ; sous macOS, il faut avoir lancé
+*Shell Command: Install 'code' command in PATH*. Constaté sur cette machine de développement
+elle-même : VS Code présent en
+`%LOCALAPPDATA%\Programs\Microsoft VS Code\bin\code.cmd`, et `code` introuvable dans le `PATH`.
+→ `scripts/install.{sh,ps1}` sondent donc aussi les emplacements d'installation standards, en
+couvrant **deux dispositions** : `<racine>/bin/<cmd>` (VS Code, Windsurf, Trae) et
+`<racine>/resources/app/bin/<cmd>` (**Cursor**). Sans ce repli, les scripts annonçaient
+« aucun éditeur trouvé » sur une machine où deux éditeurs étaient installés.
+
+**Une interception TLS fait échouer l'installation depuis le registre, pas depuis un fichier.**
+`cursor --install-extension tialao.tialao-adb-wireless-connect` répond
+`self signed certificate in certificate chain` derrière un antivirus ou un proxy qui inspecte le
+trafic, alors que le **même** paquet s'installe sans broncher depuis un `.vsix` téléchargé par le
+navigateur. → La voie *Extensions → `...` → Install from VSIX…* est la seule à recommander en
+premier : elle ne dépend ni du `PATH`, ni du nom de la commande, ni d'un accès au registre.
+
+**`scripts/install.ps1` ne doit pas commencer par un BOM UTF-8** : l'invocation recommandée
+`irm … | iex` peut échouer sur une erreur d'analyse, le caractère U+FEFF se retrouvant en tête du
+bloc de script.
+
 ## Commandes utiles
 
 ```bash
